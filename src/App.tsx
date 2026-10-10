@@ -36,6 +36,7 @@ import { CustomersView } from './components/views/CustomersView';
 import { AccountsView } from './components/views/AccountsView';
 import { TransactionsView } from './components/views/TransactionsView';
 import { ProfileView } from './components/views/ProfileView';
+import { SettingsView } from './components/views/SettingsView';
 import { AccessDeniedView } from './components/views/AccessDeniedView';
 
 // Role-Specific Concept Views
@@ -43,8 +44,8 @@ import {
   BalanceOverviewView,
   AtomicTransferView,
   AccountStatementView,
-  LoanAmortizationView,
 } from './components/views/CustomerViews';
+import { LoanStatusView } from './components/views/LoanStatusView';
 import {
   TellerDashboardView,
   TellerDepositView,
@@ -586,7 +587,7 @@ export function App() {
         )}
 
         {/* Global Toast Alerts */}
-        <Toast toasts={toasts} onClose={removeToast} />
+        <Toast toasts={toasts} onDismiss={removeToast} />
       </div>
     );
   }
@@ -652,6 +653,7 @@ export function App() {
               {(currentTab === 'my_accounts' || currentTab === 'accounts') && (
                 <AccountsView
                   accounts={accounts}
+                  transactions={transactions}
                   onOpenActionModal={(action, acc) =>
                     setActionModal({ isOpen: true, type: action, targetAccount: acc })
                   }
@@ -684,7 +686,7 @@ export function App() {
               )}
 
               {currentTab === 'loan_status' && (
-                <LoanAmortizationView
+                <LoanStatusView
                   loans={loans}
                   currentUser={currentUser}
                   onShowToast={showToast}
@@ -692,10 +694,19 @@ export function App() {
                 />
               )}
 
-              {(currentTab === 'profile' || currentTab === 'settings') && (
+              {/* Profile Page */}
+              {currentTab === 'profile' && (
                 <ProfileView
                   currentUser={currentUser}
                   onUpdateProfile={handleUpdateCustomer}
+                  onShowToast={showToast}
+                />
+              )}
+
+              {/* Settings Page */}
+              {currentTab === 'settings' && (
+                <SettingsView
+                  currentUser={currentUser}
                   onShowToast={showToast}
                 />
               )}
@@ -812,7 +823,7 @@ export function App() {
       />
 
       {/* Toast Notifications Overlay */}
-      <Toast toasts={toasts} onClose={removeToast} />
+      <Toast toasts={toasts} onDismiss={removeToast} />
     </div>
   );
 }

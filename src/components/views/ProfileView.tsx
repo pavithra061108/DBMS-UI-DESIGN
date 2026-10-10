@@ -1,24 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   User,
   Mail,
   Phone,
   MapPin,
   ShieldCheck,
-  Lock,
   Save,
-  Key,
-  Eye,
-  EyeOff,
-  CheckCircle2,
   Landmark,
+  CalendarDays,
+  CreditCard,
 } from 'lucide-react';
 import { Customer } from '../../types/bank';
 
 interface ProfileViewProps {
   currentUser: Customer;
   onUpdateProfile: (updated: Customer) => void;
-  onShowToast: (title: string, desc: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+  onShowToast: (
+    title: string,
+    desc: string,
+    type: 'success' | 'error' | 'warning' | 'info'
+  ) => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -26,220 +27,146 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onUpdateProfile,
   onShowToast,
 }) => {
-  const [name, setName] = useState(currentUser.name);
-  const [email, setEmail] = useState(currentUser.email);
-  const [phone, setPhone] = useState(currentUser.phone);
-  const [address, setAddress] = useState(currentUser.address);
+  const [name, setName] = useState(currentUser.name ?? '');
+  const [email, setEmail] = useState(currentUser.email ?? '');
+  const [phone, setPhone] = useState(currentUser.phone ?? '');
+  const [address, setAddress] = useState(currentUser.address ?? '');
 
-  // Security password fields
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPass, setShowPass] = useState(false);
+  useEffect(() => {
+    setName(currentUser.name ?? '');
+    setEmail(currentUser.email ?? '');
+    setPhone(currentUser.phone ?? '');
+    setAddress(currentUser.address ?? '');
+  }, [currentUser]);
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const updated: Customer = {
+    if (!name.trim() || !email.trim() || !phone.trim() || !address.trim()) {
+      onShowToast('Missing Information', 'Please complete all personal information fields.', 'error');
+      return;
+    }
+
+    onUpdateProfile({
       ...currentUser,
-      name,
-      email,
-      phone,
-      address,
-    };
-    onUpdateProfile(updated);
-    onShowToast('Profile Saved', 'Your personal account details have been updated.', 'success');
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+    });
+    onShowToast('Profile Saved', 'Your personal information has been updated.', 'success');
   };
 
-  const handlePasswordUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentPassword) {
-      onShowToast('Password Required', 'Please enter your current password.', 'error');
-      return;
-    }
-    if (!newPassword || newPassword.length < 6) {
-      onShowToast('Weak Password', 'New password must be at least 6 characters.', 'error');
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      onShowToast('Password Mismatch', 'New password and confirmation do not match.', 'error');
-      return;
-    }
-
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    onShowToast('Password Updated', 'Your security password has been updated successfully.', 'success');
-  };
+  const maskedAccount = currentUser.accountNumber
+    ? `•••• •••• ${currentUser.accountNumber.slice(-4)}`
+    : 'Not available';
 
   return (
-    <div className="space-y-6 font-sans">
-      {/* Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-[#1E293B] border border-slate-700/80 shadow-xl flex flex-col sm:flex-row items-center gap-6">
-        <img
-          src={currentUser.avatar}
-          alt={currentUser.name}
-          className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl object-cover border-4 border-[#3B82F6] shadow-xl"
-        />
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
-            <h1 className="text-2xl font-black text-white">{currentUser.name}</h1>
-            <span className="px-3 py-0.5 rounded-full text-xs font-bold bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/30">
-              {currentUser.status}
-            </span>
-          </div>
-          <p className="text-xs text-slate-300 font-mono">
-            Username: @{currentUser.username} • Account: {currentUser.accountNumber}
-          </p>
-          <p className="text-xs text-slate-400">
-            Branch: {currentUser.branch} • Member since {currentUser.joinedDate}
-          </p>
-        </div>
+    <div className="space-y-6 font-sans text-white">
+      <div>
+        <h1 className="text-2xl font-black">My Profile</h1>
+        <p className="mt-1 text-sm text-slate-400">Manage your personal information and banking identity.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Col: Personal Details Form */}
-        <div className="lg:col-span-7 bg-[#1E293B] p-6 sm:p-8 rounded-3xl border border-slate-700/80 shadow-xl space-y-6">
-          <div className="flex items-center gap-2 border-b border-slate-700/60 pb-4">
-            <User className="w-5 h-5 text-[#3B82F6]" />
-            <h2 className="text-lg font-bold text-white">Personal Customer Details</h2>
+      <section className="flex flex-col gap-5 rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 shadow-xl sm:flex-row sm:items-center sm:p-8">
+        {currentUser.avatar ? (
+          <img
+            src={currentUser.avatar}
+            alt={`${currentUser.name}'s profile`}
+            className="h-24 w-24 rounded-3xl border-4 border-[#3B82F6] object-cover shadow-xl"
+          />
+        ) : (
+          <div className="flex h-24 w-24 items-center justify-center rounded-3xl border-4 border-[#3B82F6] bg-slate-800 text-3xl font-black text-blue-300">
+            {(currentUser.name || 'U').charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="min-w-0 flex-1 space-y-2 text-center sm:text-left">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+            <h2 className="text-2xl font-black">{currentUser.name}</h2>
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-400">
+              <ShieldCheck className="h-3.5 w-3.5" /> {currentUser.status || 'Status unavailable'}
+            </span>
+          </div>
+          <p className="break-words text-xs text-slate-300">Username: @{currentUser.username || 'not set'}</p>
+          <p className="text-xs text-slate-300">Customer ID: {currentUser.id}</p>
+          <p className="text-xs text-slate-400">Branch: {currentUser.branch || 'Not assigned'} · Member since {currentUser.joinedDate || 'Not available'}</p>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
+        <section className="rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 shadow-xl sm:p-8 xl:col-span-3">
+          <div className="mb-6 flex items-center gap-2 border-b border-slate-700/60 pb-4">
+            <User className="h-5 w-5 text-[#3B82F6]" />
+            <h2 className="text-lg font-bold">Personal Information</h2>
           </div>
 
           <form onSubmit={handleProfileSave} className="space-y-4 text-xs">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Full Name</label>
+              <label htmlFor="profile-name" className="mb-1 block font-semibold text-slate-300">Full Name</label>
               <div className="relative">
-                <User className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-[#3B82F6]"
-                />
+                <User className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                <input id="profile-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full rounded-xl border border-slate-700 bg-[#0F172A] py-2.5 pl-10 pr-4 text-white outline-none focus:border-[#3B82F6]" />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Email Address</label>
+                <label htmlFor="profile-email" className="mb-1 block font-semibold text-slate-300">Email Address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-[#3B82F6]"
-                  />
+                  <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                  <input id="profile-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-xl border border-slate-700 bg-[#0F172A] py-2.5 pl-10 pr-4 text-white outline-none focus:border-[#3B82F6]" />
                 </div>
               </div>
-
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Mobile Phone</label>
+                <label htmlFor="profile-phone" className="mb-1 block font-semibold text-slate-300">Mobile Phone</label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-[#3B82F6]"
-                  />
+                  <Phone className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                  <input id="profile-phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full rounded-xl border border-slate-700 bg-[#0F172A] py-2.5 pl-10 pr-4 text-white outline-none focus:border-[#3B82F6]" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Residential Address</label>
+              <label htmlFor="profile-address" className="mb-1 block font-semibold text-slate-300">Residential Address</label>
               <div className="relative">
-                <MapPin className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                <input
-                  type="text"
-                  required
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-[#3B82F6]"
-                />
+                <MapPin className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+                <input id="profile-address" type="text" required value={address} onChange={(e) => setAddress(e.target.value)} className="w-full rounded-xl border border-slate-700 bg-[#0F172A] py-2.5 pl-10 pr-4 text-white outline-none focus:border-[#3B82F6]" />
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="py-3 px-6 bg-[#3B82F6] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
-            >
-              <Save className="w-4 h-4" />
-              <span>Save Personal Info</span>
-            </button>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <button type="submit" className="inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-xs font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-600">
+                <Save className="h-4 w-4" /> Save Personal Info
+              </button>
+              <button type="button" onClick={() => { setName(currentUser.name ?? ''); setEmail(currentUser.email ?? ''); setPhone(currentUser.phone ?? ''); setAddress(currentUser.address ?? ''); }} className="rounded-xl border border-slate-600 px-5 py-3 text-xs font-bold text-slate-300 transition hover:bg-slate-800">Reset Changes</button>
+            </div>
           </form>
-        </div>
+        </section>
 
-        {/* Right Col: Password & Security Form */}
-        <div className="lg:col-span-5 bg-[#1E293B] p-6 sm:p-8 rounded-3xl border border-slate-700/80 shadow-xl space-y-6">
+        <section className="space-y-4 rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 shadow-xl sm:p-8 xl:col-span-2">
           <div className="flex items-center gap-2 border-b border-slate-700/60 pb-4">
-            <Lock className="w-5 h-5 text-[#10B981]" />
-            <h2 className="text-lg font-bold text-white">Security & Password Update</h2>
+            <Landmark className="h-5 w-5 text-[#3B82F6]" />
+            <h2 className="text-lg font-bold">Banking Information</h2>
           </div>
-
-          <form onSubmit={handlePasswordUpdate} className="space-y-4 text-xs">
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Current Password</label>
-              <div className="relative">
-                <Key className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
-                  className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2.5 pl-10 pr-10 text-white focus:outline-none focus:border-[#3B82F6]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3.5 top-3 text-slate-400 hover:text-white"
-                >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">New Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Minimum 6 characters"
-                  className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-[#3B82F6]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-slate-300 font-semibold mb-1">Confirm New Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
-                <input
-                  type={showPass ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter new password"
-                  className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-[#3B82F6]"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 bg-[#10B981] hover:bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Update Password</span>
-            </button>
-          </form>
-        </div>
+          <InfoRow icon={<CreditCard className="h-4 w-4" />} label="Primary Account" value={maskedAccount} />
+          <InfoRow icon={<Landmark className="h-4 w-4" />} label="Account Type" value={currentUser.accountType || 'Not available'} />
+          <InfoRow icon={<ShieldCheck className="h-4 w-4" />} label="Verification Status" value={currentUser.status || 'Not available'} />
+          <InfoRow icon={<MapPin className="h-4 w-4" />} label="Home Branch" value={currentUser.branch || 'Not assigned'} />
+          <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Member Since" value={currentUser.joinedDate || 'Not available'} />
+          <p className="rounded-xl border border-slate-700 bg-[#0F172A]/70 p-3 text-[11px] leading-relaxed text-slate-400">For your security, account numbers are masked on this page.</p>
+        </section>
       </div>
     </div>
   );
 };
+
+const InfoRow: React.FC<{ icon: React.ReactNode; label: string; value: string }> = ({ icon, label, value }) => (
+  <div className="flex items-start gap-3 border-b border-slate-700/50 py-3 last:border-b-0">
+    <span className="mt-0.5 text-blue-300">{icon}</span>
+    <div className="min-w-0 flex-1">
+      <p className="text-[11px] font-medium text-slate-400">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-white">{value}</p>
+    </div>
+  </div>
+);
+
+export default ProfileView;
