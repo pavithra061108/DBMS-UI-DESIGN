@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Landmark,
   CheckCircle2,
@@ -13,21 +13,25 @@ import {
   AlertTriangle,
   Snowflake,
   Eye,
+  Plus,
 } from 'lucide-react';
 import { BankAccount, Transaction } from '../../types/bank';
+import API from '../../services/api';
 
 interface AccountsViewProps {
   accounts: BankAccount[];
   transactions: Transaction[];
-  // Kept optional so existing App.tsx calls do not break.
+  globalAccountId?: string;
+  setGlobalAccountId?: (id: string) => void;
   onOpenActionModal?: (
     action: 'deposit' | 'withdraw' | 'transfer',
     targetAccount?: BankAccount
   ) => void;
+  onAccountCreated?: () => void;
 }
 
-const money = (amount: number, currency = 'USD') =>
-  `${currency} ${amount.toLocaleString(undefined, {
+const money = (amount: number, currency = 'INR') =>
+  `₹${amount.toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -35,12 +39,18 @@ const money = (amount: number, currency = 'USD') =>
 export const AccountsView: React.FC<AccountsViewProps> = ({
   accounts,
   transactions,
+  globalAccountId,
+  setGlobalAccountId,
+  onAccountCreated,
 }) => {
-  const [selectedAccount, setSelectedAccount] =
-    React.useState<BankAccount | null>(null);
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [statusFilter, setStatusFilter] = React.useState('All');
-  const [typeFilter, setTypeFilter] = React.useState('All');
+  const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newAccountType, setNewAccountType] = useState('Savings');
+  const [isCreating, setIsCreating] = useState(false);
 
   const activeAccounts = accounts.filter(
     (account) => account.status.toLowerCase() === 'active'
@@ -59,7 +69,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     const matchesSearch =
       account.customerName.toLowerCase().includes(search) ||
       account.accountNumber.toLowerCase().includes(search) ||
-      account.id.toLowerCase().includes(search) ||
+      account.id.toString().toLowerCase().includes(search) ||
       account.iban.toLowerCase().includes(search);
 
     const matchesStatus =
@@ -82,6 +92,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
   const openAccount = (account: BankAccount) => {
     setSelectedAccount(account);
+    if (setGlobalAccountId) setGlobalAccountId(account.id.toString());
     scrollMainToTop();
   };
 
@@ -97,6 +108,27 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           transaction.receiverIban === selectedAccount.iban
       )
     : [];
+
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreating(true);
+    try {
+      const res = await API.post('/accounts/create', {
+        accountType: newAccountType,
+        initialBalance: 0,
+      });
+      setIsModalOpen(false);
+      if (res.data && res.data.account && setGlobalAccountId) {
+        setGlobalAccountId(res.data.account.accountid || res.data.account.id);
+      }
+      if (onAccountCreated) onAccountCreated();
+    } catch (error) {
+      console.error('Failed to create account:', error);
+      alert('Failed to open account. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   if (selectedAccount) {
     const acc = selectedAccount;
@@ -156,7 +188,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Detail label="Account Number" value={acc.accountNumber} />
-            <Detail label="IBAN Code" value={acc.iban} />
+            <Detail label="IBAN / IFSC Code" value={acc.iban} />
             <Detail label="Account Type" value={acc.type} />
             <Detail
               label="Branch"
@@ -170,37 +202,17 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
             />
             <Detail label="Account Status" value={acc.status} />
           </div>
-
-          <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4">
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
-              <div>
-                <p className="font-semibold text-white">Administrative account view</p>
-                <p className="mt-1 text-sm text-slate-400">
-                  This page is for reviewing account details and status. Deposits,
-                  withdrawals, and transfers should be handled through authorized
-                  transaction workflows.
-                </p>
-              </div>
-            </div>
-          </div>
         </section>
 
         <section className="overflow-hidden rounded-3xl border border-slate-700/80 bg-[#1E293B] p-5 shadow-xl sm:p-6">
           <div className="mb-5">
             <h2 className="text-lg font-bold text-white">Account Transaction History</h2>
-            <p className="mt-1 text-xs text-slate-400">
-              Transactions associated with this account's IBAN.
-            </p>
           </div>
 
           {accountTransactions.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-700 p-8 text-center">
               <Landmark className="mx-auto h-8 w-8 text-slate-500" />
               <p className="mt-3 font-semibold text-slate-200">No transactions found</p>
-              <p className="mt-1 text-sm text-slate-400">
-                Transactions for this account will appear here.
-              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -224,34 +236,12 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                       <td className="py-4 text-slate-200">{tx.type}</td>
                       <td className="py-4">
                         <p className="font-semibold text-white">{tx.senderName || '—'}</p>
-                        <p className="mt-1 text-slate-400">
-                          → {tx.receiverName || '—'}
-                        </p>
                       </td>
                       <td className="py-4 font-mono font-bold text-white">
-                        {money(tx.amount, tx.currency)}
+                        {money(Number(tx.amount), tx.currency)}
                       </td>
                       <td className="py-4 text-slate-300">{tx.date}</td>
-                      <td className="py-4 pr-2">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-bold ${
-                            tx.status === 'Completed'
-                              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400'
-                              : tx.status === 'Pending'
-                              ? 'border-amber-500/30 bg-amber-500/15 text-amber-400'
-                              : 'border-rose-500/30 bg-rose-500/15 text-rose-400'
-                          }`}
-                        >
-                          {tx.status === 'Completed' ? (
-                            <CheckCircle2 className="h-3 w-3" />
-                          ) : tx.status === 'Pending' ? (
-                            <Clock className="h-3 w-3" />
-                          ) : (
-                            <XCircle className="h-3 w-3" />
-                          )}
-                          {tx.status}
-                        </span>
-                      </td>
+                      <td className="py-4 pr-2">{tx.status}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -266,210 +256,98 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   return (
     <div className="space-y-6 font-sans">
       <section className="rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 shadow-xl sm:p-8">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black text-white">
-            <Landmark className="h-6 w-6 text-[#3B82F6]" />
-            Account Management
-          </h1>
-          <p className="mt-1 text-sm text-slate-300">
-            Review bank accounts, monitor account status, and inspect account activity.
-          </p>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-black text-white">
+              <Landmark className="h-6 w-6 text-[#3B82F6]" />
+              Account Management
+            </h1>
+            <p className="mt-1 text-sm text-slate-300">
+              Review bank accounts, monitor account status, and inspect account activity.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-500 shadow-lg shadow-blue-600/20"
+          >
+            <Plus className="h-5 w-5" />
+            Open New Account
+          </button>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Total Accounts"
-          value={accounts.length}
-          icon={<Landmark className="h-5 w-5" />}
-          color="blue"
-        />
-        <StatCard
-          title="Active Accounts"
-          value={activeAccounts}
-          icon={<ShieldCheck className="h-5 w-5" />}
-          color="green"
-        />
-        <StatCard
-          title="Frozen Accounts"
-          value={frozenAccounts}
-          icon={<Snowflake className="h-5 w-5" />}
-          color="red"
-        />
-        <StatCard
-          title="Pending Accounts"
-          value={pendingAccounts}
-          icon={<AlertTriangle className="h-5 w-5" />}
-          color="amber"
-        />
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 rounded-2xl border border-slate-700 bg-[#1E293B] p-4 md:grid-cols-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Search name, account ID, number, IBAN..."
-            className="w-full rounded-xl border border-slate-700 bg-[#0F172A] py-3 pl-10 pr-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-500"
-          />
-        </div>
-
-        <select
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
-          className="rounded-xl border border-slate-700 bg-[#0F172A] px-4 py-3 text-sm text-white outline-none focus:border-blue-500"
-        >
-          <option value="All">All Account Statuses</option>
-          <option value="Active">Active</option>
-          <option value="Frozen">Frozen</option>
-          <option value="Pending">Pending</option>
-          <option value="Closed">Closed</option>
-        </select>
-
-        <select
-          value={typeFilter}
-          onChange={(event) => setTypeFilter(event.target.value)}
-          className="rounded-xl border border-slate-700 bg-[#0F172A] px-4 py-3 text-sm text-white outline-none focus:border-blue-500"
-        >
-          <option value="All">All Account Types</option>
-          <option value="Savings">Savings</option>
-          <option value="Checking">Checking</option>
-          <option value="Investment">Investment</option>
-          <option value="Money Market">Money Market</option>
-        </select>
-      </section>
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-bold text-white">Bank Account Records</h2>
-        <p className="text-sm text-slate-400">
-          Showing {filteredAccounts.length} of {accounts.length} accounts
-        </p>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {filteredAccounts.map((acc) => (
+          <button
+            key={acc.id}
+            type="button"
+            onClick={() => openAccount(acc)}
+            className="flex cursor-pointer flex-col justify-between rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 text-left shadow-xl transition-all hover:-translate-y-1 hover:border-[#3B82F6]/70"
+          >
+            <div className="w-full">
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <span className="rounded-full border border-[#3B82F6]/30 bg-[#3B82F6]/20 px-3 py-1 text-xs font-bold text-[#60A5FA]">
+                  {acc.type}
+                </span>
+              </div>
+              <h3 className="mb-1 text-lg font-bold text-white">{acc.customerName}</h3>
+              <p className="mb-4 font-mono text-xs text-slate-400">ID: {acc.id}</p>
+              <div className="mb-5 space-y-2 rounded-2xl border border-slate-800 bg-[#0F172A] p-4">
+                <span className="block text-[10px] font-semibold uppercase text-slate-400">Account Number</span>
+                <span className="break-all font-mono text-sm font-extrabold text-white">{acc.accountNumber}</span>
+              </div>
+              <div className="mb-6">
+                <span className="text-xs font-semibold uppercase text-slate-400">Current Balance</span>
+                <p className="mt-0.5 text-2xl font-black text-emerald-400">{money(acc.balance, acc.currency)}</p>
+              </div>
+            </div>
+            <div className="flex w-full items-center justify-between border-t border-slate-700/60 pt-4">
+              <span className="text-xs font-bold text-[#60A5FA]">View account details</span>
+              <Eye className="h-4 w-4 text-[#60A5FA]" />
+            </div>
+          </button>
+        ))}
       </div>
 
-      {filteredAccounts.length === 0 ? (
-        <div className="rounded-3xl border border-slate-700 bg-[#1E293B] p-10 text-center">
-          <Landmark className="mx-auto h-10 w-10 text-slate-500" />
-          <p className="mt-3 font-semibold text-white">No matching accounts found</p>
-          <p className="mt-1 text-sm text-slate-400">
-            Try changing your search or filters.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredAccounts.map((acc) => (
-            <button
-              key={acc.id}
-              type="button"
-              onClick={() => openAccount(acc)}
-              className="flex cursor-pointer flex-col justify-between rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 text-left shadow-xl transition-all hover:-translate-y-1 hover:border-[#3B82F6]/70 hover:shadow-blue-950/30 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
-              aria-label={`Open details for ${acc.type} account ${acc.accountNumber}`}
-            >
-              <div className="w-full">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <span className="rounded-full border border-[#3B82F6]/30 bg-[#3B82F6]/20 px-3 py-1 text-xs font-bold text-[#60A5FA]">
-                    {acc.type}
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-extrabold uppercase ${
-                      acc.status.toLowerCase() === 'active'
-                        ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400'
-                        : acc.status.toLowerCase() === 'frozen'
-                        ? 'border-rose-500/30 bg-rose-500/15 text-rose-400'
-                        : 'border-amber-500/30 bg-amber-500/15 text-amber-400'
-                    }`}
-                  >
-                    <CheckCircle2 className="h-3 w-3" />
-                    {acc.status}
-                  </span>
-                </div>
-
-                <h3 className="mb-1 text-lg font-bold text-white">{acc.customerName}</h3>
-                <p className="mb-4 font-mono text-xs text-slate-400">ID: {acc.id}</p>
-
-                <div className="mb-5 space-y-2 rounded-2xl border border-slate-800 bg-[#0F172A] p-4">
-                  <div>
-                    <span className="block text-[10px] font-semibold uppercase text-slate-400">
-                      Account Number
-                    </span>
-                    <span className="break-all font-mono text-sm font-extrabold tracking-wider text-white">
-                      {acc.accountNumber}
-                    </span>
-                  </div>
-                  <div className="border-t border-slate-800 pt-2">
-                    <span className="block text-[10px] font-semibold uppercase text-slate-400">
-                      IBAN Code
-                    </span>
-                    <span className="break-all font-mono text-xs font-semibold text-[#60A5FA]">
-                      {acc.iban}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <span className="text-xs font-semibold uppercase text-slate-400">
-                    Current Balance
-                  </span>
-                  <p className="mt-0.5 break-words font-mono-num text-2xl font-black text-emerald-400">
-                    {money(acc.balance, acc.currency)}
-                  </p>
-                  <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
-                    <TrendingUp className="h-3 w-3 text-emerald-400" />
-                    Interest Rate: {acc.interestRate}% APY
-                  </div>
-                </div>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-[#1E293B] p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-white mb-4">Open New Account</h2>
+            <form onSubmit={handleCreateAccount} className="space-y-5">
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setNewAccountType('Savings')}
+                  className={`py-3 px-4 rounded-xl border text-sm font-bold ${newAccountType === 'Savings' ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400'}`}
+                >
+                  Savings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewAccountType('Checking')}
+                  className={`py-3 px-4 rounded-xl border text-sm font-bold ${newAccountType === 'Checking' ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400'}`}
+                >
+                  Checking
+                </button>
               </div>
-
-              <div className="flex w-full items-center justify-between border-t border-slate-700/60 pt-4">
-                <span className="text-xs font-bold text-[#60A5FA]">
-                  View account details
-                </span>
-                <Eye className="h-4 w-4 text-[#60A5FA]" />
-              </div>
-            </button>
-          ))}
+              <button
+                type="submit"
+                disabled={isCreating}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition"
+              >
+                {isCreating ? 'Creating...' : 'Confirm & Open Account'}
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-const StatCard: React.FC<{
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  color: 'blue' | 'green' | 'red' | 'amber';
-}> = ({ title, value, icon, color }) => {
-  const colors = {
-    blue: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
-    green: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
-    red: 'border-rose-500/30 bg-rose-500/10 text-rose-400',
-    amber: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
-  };
-
-  return (
-    <div className="rounded-2xl border border-slate-700 bg-[#1E293B] p-5 shadow-lg">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-slate-400">{title}</p>
-        <div className={`rounded-xl border p-2 ${colors[color]}`}>{icon}</div>
-      </div>
-      <p className="mt-4 text-3xl font-black text-white">
-        {value.toLocaleString()}
-      </p>
-    </div>
-  );
-};
-
-const Detail: React.FC<{
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-}> = ({ label, value, icon }) => (
+const Detail: React.FC<{ label: string; value: string; icon?: React.ReactNode }> = ({ label, value, icon }) => (
   <div className="rounded-2xl border border-slate-700/80 bg-[#0F172A] p-4">
-    <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-      {icon} {label}
-    </p>
+    <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">{icon} {label}</p>
     <p className="mt-2 break-all text-sm font-semibold text-white">{value}</p>
   </div>
 );

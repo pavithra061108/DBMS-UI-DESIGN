@@ -13,7 +13,7 @@ import {
   X,
   Download,
   Activity,
-  DollarSign,
+  IndianRupee,
   CalendarDays,
 } from 'lucide-react';
 
@@ -116,7 +116,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       t.referenceNumber, t.id, t.senderName, t.receiverName, t.type,
       t.category, t.amount, t.currency, t.fee, t.date, t.time, t.status
     ]);
-    const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\\r\\n');
+    const csv = [headers, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -136,7 +136,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       <div className="p-6 rounded-3xl glass-card border border-white/10">
         <h2 className="text-xl lg:text-2xl font-bold text-white flex items-center gap-2">
           <ArrowLeftRight className="w-6 h-6 text-[#3B82F6]" />
-
           Transaction History
         </h2>
 
@@ -153,7 +152,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             <p className="text-xs font-semibold text-[#CBD5E1]/60">Total Transactions</p>
             <Activity className="w-5 h-5 text-blue-400" />
           </div>
-          <p className="mt-3 text-3xl font-black text-white">{transactions.length.toLocaleString()}</p>
+          <p className="mt-3 text-3xl font-black text-white">{transactions.length.toLocaleString('en-IN')}</p>
           <p className="mt-1 text-[10px] text-[#CBD5E1]/45">All recorded transactions</p>
         </div>
         <div className="glass-panel rounded-2xl border border-emerald-500/20 p-5">
@@ -161,7 +160,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             <p className="text-xs font-semibold text-[#CBD5E1]/60">Completed</p>
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
           </div>
-          <p className="mt-3 text-3xl font-black text-emerald-400">{completedCount.toLocaleString()}</p>
+          <p className="mt-3 text-3xl font-black text-emerald-400">{completedCount.toLocaleString('en-IN')}</p>
           <p className="mt-1 text-[10px] text-[#CBD5E1]/45">Successfully processed</p>
         </div>
         <div className="glass-panel rounded-2xl border border-amber-500/20 p-5">
@@ -169,7 +168,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             <p className="text-xs font-semibold text-[#CBD5E1]/60">Pending</p>
             <Clock className="w-5 h-5 text-amber-400" />
           </div>
-          <p className="mt-3 text-3xl font-black text-amber-400">{pendingCount.toLocaleString()}</p>
+          <p className="mt-3 text-3xl font-black text-amber-400">{pendingCount.toLocaleString('en-IN')}</p>
           <p className="mt-1 text-[10px] text-[#CBD5E1]/45">Awaiting processing</p>
         </div>
         <div className="glass-panel rounded-2xl border border-red-500/20 p-5">
@@ -177,7 +176,7 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             <p className="text-xs font-semibold text-[#CBD5E1]/60">Failed</p>
             <XCircle className="w-5 h-5 text-red-400" />
           </div>
-          <p className="mt-3 text-3xl font-black text-red-400">{failedCount.toLocaleString()}</p>
+          <p className="mt-3 text-3xl font-black text-red-400">{failedCount.toLocaleString('en-IN')}</p>
           <p className="mt-1 text-[10px] text-[#CBD5E1]/45">Require review</p>
         </div>
       </div>
@@ -186,8 +185,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         <div>
           <p className="text-xs text-[#CBD5E1]/55">Completed transaction volume</p>
           <p className="mt-1 flex items-center gap-2 text-xl font-black text-white">
-            <DollarSign className="w-5 h-5 text-emerald-400" />
-            {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            <IndianRupee className="w-5 h-5 text-emerald-400" />
+            {totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
         <button type="button" onClick={exportCsv}
@@ -219,7 +218,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <span className="text-[#CBD5E1]/50 font-semibold flex items-center gap-1">
             <Filter className="w-3.5 h-3.5" />
-
             Status:
           </span>
 
@@ -298,10 +296,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
 
       {/* Transaction Table */}
       <div className="glass-panel rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
-
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
-
             <thead>
               <tr className="border-b border-white/10 bg-[#050816]/60 text-[#CBD5E1]/60 font-semibold uppercase tracking-wider">
                 <th className="p-4 pl-6">Reference ID</th>
@@ -315,7 +311,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             </thead>
 
             <tbody className="divide-y divide-white/5">
-
               {paginated.length === 0 ? (
                 <tr>
                   <td
@@ -331,13 +326,11 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                     key={tx.id}
                     className="hover:bg-white/[0.03] transition-colors group"
                   >
-
                     {/* Reference ID */}
                     <td className="p-4 pl-6">
                       <p className="font-mono-num font-bold text-white group-hover:text-[#3B82F6] transition-colors">
                         {tx.referenceNumber}
                       </p>
-
                       <span className="text-[10px] text-[#CBD5E1]/50">
                         {tx.id}
                       </span>
@@ -348,7 +341,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       <p className="text-white font-semibold">
                         {tx.senderName}
                       </p>
-
                       <p className="text-[11px] text-[#CBD5E1]/50 truncate max-w-[200px]">
                         → {tx.receiverName}
                       </p>
@@ -359,7 +351,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#2563EB]/15 text-[#3B82F6] border border-[#2563EB]/30">
                         {tx.type}
                       </span>
-
                       <p className="text-[10px] text-[#CBD5E1]/50 mt-1">
                         {tx.category}
                       </p>
@@ -368,15 +359,13 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                     {/* Amount */}
                     <td className="p-4">
                       <p className="font-mono-num text-sm font-extrabold text-white">
-                        ${tx.amount.toLocaleString()}
-
+                        ₹{Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         <span className="text-[10px] text-[#CBD5E1]/50 ml-1">
                           {tx.currency}
                         </span>
                       </p>
-
                       <span className="text-[10px] text-[#CBD5E1]/40">
-                        Fee: ${tx.fee}
+                        Fee: ₹{Number(tx.fee).toLocaleString('en-IN')}
                       </span>
                     </td>
 
@@ -385,7 +374,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                       <p className="font-mono-num text-white">
                         {tx.date}
                       </p>
-
                       <p className="text-[10px] text-[#CBD5E1]/50 font-mono-num">
                         {tx.time}
                       </p>
@@ -393,28 +381,24 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
 
                     {/* Status */}
                     <td className="p-4">
-
                       {tx.status === 'Completed' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30">
                           <CheckCircle2 className="w-3 h-3" />
                           Completed
                         </span>
                       )}
-
                       {tx.status === 'Pending' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/30">
                           <Clock className="w-3 h-3" />
                           Pending
                         </span>
                       )}
-
                       {tx.status === 'Failed' && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-red-500/15 text-red-400 border border-red-500/30">
                           <XCircle className="w-3 h-3" />
                           Failed
                         </span>
                       )}
-
                     </td>
 
                     {/* View Receipt */}
@@ -427,18 +411,15 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                         <FileCheck className="w-4 h-4" />
                       </button>
                     </td>
-
                   </tr>
                 ))
               )}
-
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
         <div className="p-4 border-t border-white/10 flex items-center justify-between text-xs text-[#CBD5E1]/60 bg-[#050816]/40">
-
           <span>
             Showing{' '}
             {filtered.length === 0
@@ -453,7 +434,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
           </span>
 
           <div className="flex items-center gap-2">
-
             <button
               disabled={currentPage === 1}
               onClick={() =>
@@ -481,7 +461,6 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
             >
               <ChevronRight className="w-4 h-4" />
             </button>
-
           </div>
         </div>
       </div>
@@ -489,24 +468,19 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
       {/* Transaction Receipt Modal */}
       {selectedTxn && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
-
           <div className="bg-[#0B1E36] border border-white/15 rounded-3xl w-full max-w-xl p-6 lg:p-8 shadow-2xl relative">
-
+            
             {/* Modal Header */}
             <div className="flex justify-between items-center mb-6">
-
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-[#22C55E]" />
-
                   Transaction Receipt
                 </h3>
-
                 <p className="text-xs text-[#CBD5E1]/50 font-mono-num mt-2">
                   Reference: {selectedTxn.referenceNumber}
                 </p>
               </div>
-
               <button
                 onClick={() => setSelectedTxn(null)}
                 className="p-1.5 text-[#CBD5E1]/60 hover:text-white rounded-lg"
@@ -514,108 +488,59 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
               >
                 <X className="w-5 h-5" />
               </button>
-
             </div>
 
             {/* Receipt Details */}
             <div className="bg-[#101827] p-5 rounded-2xl border border-white/10 space-y-3 text-xs font-mono-num">
-
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Sender:
-                </span>
-
-                <span className="text-white font-bold text-right">
-                  {selectedTxn.senderName}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Sender:</span>
+                <span className="text-white font-bold text-right">{selectedTxn.senderName}</span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Sender IBAN:
-                </span>
-
-                <span className="text-[#3B82F6] text-right">
-                  {selectedTxn.senderIban}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Sender IBAN:</span>
+                <span className="text-[#3B82F6] text-right">{selectedTxn.senderIban}</span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Receiver:
-                </span>
-
-                <span className="text-white font-bold text-right">
-                  {selectedTxn.receiverName}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Receiver:</span>
+                <span className="text-white font-bold text-right">{selectedTxn.receiverName}</span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Receiver IBAN:
-                </span>
-
-                <span className="text-[#3B82F6] text-right">
-                  {selectedTxn.receiverIban}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Receiver IBAN:</span>
+                <span className="text-[#3B82F6] text-right">{selectedTxn.receiverIban}</span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Transaction Type:
-                </span>
-
-                <span className="text-white">
-                  {selectedTxn.type}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Transaction Type:</span>
+                <span className="text-white">{selectedTxn.type}</span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Amount:
-                </span>
-
+                <span className="text-[#CBD5E1]/50 font-sans">Amount:</span>
                 <span className="text-[#22C55E] text-sm font-extrabold">
-                  {selectedTxn.currency}{' '}
-                  {selectedTxn.amount.toLocaleString()}
+                  ₹{Number(selectedTxn.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} {selectedTxn.currency}
                 </span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Transaction Fee:
-                </span>
-
-                <span className="text-white">
-                  ${selectedTxn.fee}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Transaction Fee:</span>
+                <span className="text-white">₹{Number(selectedTxn.fee).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Date:
-                </span>
-
-                <span className="text-white">
-                  {selectedTxn.date}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Date:</span>
+                <span className="text-white">{selectedTxn.date}</span>
               </div>
 
               <div className="flex justify-between gap-4 border-b border-white/5 pb-2">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Time:
-                </span>
-
-                <span className="text-white">
-                  {selectedTxn.time}
-                </span>
+                <span className="text-[#CBD5E1]/50 font-sans">Time:</span>
+                <span className="text-white">{selectedTxn.time}</span>
               </div>
 
               <div className="flex justify-between gap-4">
-                <span className="text-[#CBD5E1]/50 font-sans">
-                  Status:
-                </span>
-
+                <span className="text-[#CBD5E1]/50 font-sans">Status:</span>
                 <span
                   className={
                     selectedTxn.status === 'Completed'
@@ -628,17 +553,14 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                   {selectedTxn.status}
                 </span>
               </div>
-
             </div>
 
             {/* Receipt Actions */}
             <div className="mt-6 flex justify-between items-center gap-4">
-
               <span className="text-[10px] text-[#22C55E] font-bold uppercase flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Transaction Details
               </span>
-
               <button
                 onClick={() => {
                   onShowToast(
@@ -646,20 +568,16 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
                     'Transaction receipt details are displayed.',
                     'success'
                   );
-
                   setSelectedTxn(null);
                 }}
                 className="px-5 py-2.5 bg-gradient-to-r from-[#2563EB] to-[#3B82F6] text-white rounded-xl text-xs font-bold shadow-lg"
               >
                 Done
               </button>
-
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 };

@@ -1,37 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
   Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
 } from 'recharts';
 import {
   Wallet,
-  ArrowRight,
   ArrowLeftRight,
-  Receipt,
-  Scale,
   CheckCircle2,
-  Clock,
-  XCircle,
-  AlertTriangle,
-  Play,
   RotateCcw,
   Check,
   Download,
-  Calendar,
-  DollarSign,
   Calculator,
   PlusCircle,
   ShieldCheck,
   FileSpreadsheet,
+  Scale,
+  Play,
+  IndianRupee,
+  Loader2,
+  TrendingUp,
+  Landmark
 } from 'lucide-react';
 import { Customer, BankAccount, Transaction, LoanApplication } from '../../types/bank';
 
@@ -53,21 +44,28 @@ interface CustomerViewsProps {
 export const BalanceOverviewView: React.FC<{
   accounts: BankAccount[];
   currentUser: Customer;
-}> = ({ accounts, currentUser }) => {
+  globalAccountId?: string;
+  setGlobalAccountId?: (id: string) => void;
+}> = ({ accounts, currentUser, globalAccountId, setGlobalAccountId }) => {
   const userAccounts = accounts.filter((a) => a.customerName === currentUser.name) || accounts;
+  
+  const selectedAccountId = globalAccountId || (userAccounts[0] ? userAccounts[0].id.toString() : '');
+  const activeAcc = userAccounts.find((a) => a.id.toString() === selectedAccountId) || userAccounts[0] || accounts[0];
 
-  const totalBalance = userAccounts.reduce((sum, a) => sum + a.balance, 0);
+  if (!activeAcc) return null;
 
+  const currentBalance = Number(activeAcc.balance);
+  const interestRate = Number(activeAcc.interestRate);
+  const monthlyYieldEstimate = (currentBalance * (interestRate / 100)) / 12;
+
+  // Prepare chart data across user accounts for comparison
+  const COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'];
   const pieData = userAccounts.map((a) => ({
     name: `${a.type} (${a.accountNumber.slice(-4)})`,
-    value: a.balance,
+    value: Number(a.balance),
   }));
 
-  const COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899'];
-
-  const monthlyYieldEstimate = userAccounts.reduce((sum, a) => {
-    return sum + (a.balance * (a.interestRate / 100)) / 12;
-  }, 0);
+  const totalPortfolio = userAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
 
   return (
     <div className="space-y-6">
@@ -75,22 +73,33 @@ export const BalanceOverviewView: React.FC<{
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30">
-              Portfolio Summary
+              Account Overview
             </span>
             <span className="text-xs text-slate-400 font-mono">User: {currentUser.name}</span>
           </div>
           <h1 className="text-2xl font-black text-white mt-1">Balance & Yield Overview</h1>
           <p className="text-xs text-slate-300">
-            Real-time balance aggregation across all linked savings, checking, and investment accounts.
+            Real-time balance metrics and portfolio share distribution.
           </p>
         </div>
-        <div className="bg-slate-900/80 px-5 py-3 rounded-2xl border border-slate-700/80">
-          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-            Total Aggregate Net Portfolio
-          </p>
-          <p className="text-2xl font-black text-emerald-400 font-mono-num">
-            ${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })} USD
-          </p>
+
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+              Select Account
+            </label>
+            <select
+              value={selectedAccountId}
+              onChange={(e) => setGlobalAccountId && setGlobalAccountId(e.target.value)}
+              className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+            >
+              {userAccounts.map((a) => (
+                <option key={a.id} value={a.id.toString()}>
+                  {a.type} (#{a.accountNumber})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -123,7 +132,7 @@ export const BalanceOverviewView: React.FC<{
                 </Pie>
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#fff', borderRadius: '12px' }}
-                  formatter={(val: any) => [`$${Number(val).toLocaleString()}`, 'Balance']}
+                  formatter={(val: any) => [`₹${Number(val).toLocaleString('en-IN')}`, 'Balance']}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -137,7 +146,7 @@ export const BalanceOverviewView: React.FC<{
                   style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                 />
                 <span className="text-slate-300 truncate">{item.name}</span>
-                <span className="ml-auto font-bold font-mono text-white">${item.value.toLocaleString()}</span>
+                <span className="ml-auto font-bold font-mono text-white">₹{item.value.toLocaleString('en-IN')}</span>
               </div>
             ))}
           </div>
@@ -157,13 +166,13 @@ export const BalanceOverviewView: React.FC<{
 
           <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-700 flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-400 font-medium">Estimated Monthly Interest Return</p>
+              <p className="text-xs text-slate-400 font-medium">Estimated Monthly Interest Return ({activeAcc.type})</p>
               <p className="text-xl font-bold text-emerald-400 font-mono-num mt-0.5">
-                +${monthlyYieldEstimate.toFixed(2)} USD / month
+                +₹{monthlyYieldEstimate.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR / month
               </p>
             </div>
             <div className="p-3 bg-emerald-500/20 text-emerald-400 rounded-xl">
-              <DollarSign className="w-6 h-6" />
+              <IndianRupee className="w-6 h-6" />
             </div>
           </div>
 
@@ -171,7 +180,11 @@ export const BalanceOverviewView: React.FC<{
             {userAccounts.map((acc) => (
               <div
                 key={acc.id}
-                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between"
+                className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${
+                  acc.id.toString() === selectedAccountId
+                    ? 'bg-blue-600/10 border-blue-500/50'
+                    : 'bg-slate-900/60 border-slate-800'
+                }`}
               >
                 <div>
                   <p className="text-xs font-bold text-white">{acc.type} Account</p>
@@ -182,7 +195,7 @@ export const BalanceOverviewView: React.FC<{
                     {acc.interestRate}% APY
                   </span>
                   <p className="text-sm font-bold text-white font-mono mt-1">
-                    ${acc.balance.toLocaleString()}
+                    ₹{Number(acc.balance).toLocaleString('en-IN')}
                   </p>
                 </div>
               </div>
@@ -195,25 +208,30 @@ export const BalanceOverviewView: React.FC<{
 };
 
 // ----------------------------------------------------------------------
-// 2. ATOMIC TRANSACTION TRANSFER COMPONENT (COMMIT / ROLLBACK)
+// 2. ATOMIC TRANSACTION TRANSFER COMPONENT
 // ----------------------------------------------------------------------
 export const AtomicTransferView: React.FC<{
   accounts: BankAccount[];
   currentUser: Customer;
   onShowToast: (title: string, desc: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
-}> = ({ accounts, currentUser, onShowToast }) => {
+  globalAccountId?: string;
+  setGlobalAccountId?: (id: string) => void;
+}> = ({ accounts, currentUser, onShowToast, globalAccountId, setGlobalAccountId }) => {
   const userAccounts = accounts.filter((a) => a.customerName === currentUser.name) || accounts;
 
-  const [fromAccount, setFromAccount] = useState<string>(userAccounts[0]?.id || accounts[0]?.id || '');
-  const [toIban, setToIban] = useState<string>('US89APEX900211824410');
-  const [receiverName, setReceiverName] = useState<string>('Aisha Al-Mansoor');
-  const [amount, setAmount] = useState<number>(2500);
+  const fromAccount = globalAccountId || (userAccounts[0] ? userAccounts[0].id.toString() : '');
+  const setFromAccount = (val: string) => {
+    if (setGlobalAccountId) setGlobalAccountId(val);
+  };
 
-  // Atomic state workflow
+  const [toIban, setToIban] = useState<string>('IN89APEX900211824410');
+  const [receiverName, setReceiverName] = useState<string>('Aisha Al-Mansoor');
+  const [amount, setAmount] = useState<number>(5000);
+
   const [stage, setStage] = useState<'idle' | 'begun' | 'validated' | 'staged' | 'committed' | 'rolledback'>('idle');
   const [logs, setLogs] = useState<string[]>([]);
 
-  const selectedSourceAcc = accounts.find((a) => a.id === fromAccount) || accounts[0];
+  const selectedSourceAcc = accounts.find((a) => a.id.toString() === fromAccount) || accounts[0];
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -229,26 +247,26 @@ export const AtomicTransferView: React.FC<{
 
   const handleValidateConstraints = () => {
     if (amount <= 0) {
-      addLog(`ERROR: Invalid amount $${amount}. Must be > 0.`);
+      addLog(`ERROR: Invalid amount ₹${amount}. Must be > 0.`);
       onShowToast('Validation Failed', 'Transfer amount must be greater than zero.', 'error');
       return;
     }
-    if (selectedSourceAcc && selectedSourceAcc.balance < amount) {
-      addLog(`CONSTRAINT FAILURE: Account balance $${selectedSourceAcc.balance} insufficient for $${amount}.`);
+    if (selectedSourceAcc && Number(selectedSourceAcc.balance) < amount) {
+      addLog(`CONSTRAINT FAILURE: Account balance ₹${Number(selectedSourceAcc.balance).toLocaleString('en-IN')} insufficient for ₹${amount.toLocaleString('en-IN')}.`);
       onShowToast('Constraint Error', 'Insufficient balance for atomic debit.', 'error');
       return;
     }
 
     setStage('validated');
-    addLog(`CHECK_CONSTRAINT: Source Account #${selectedSourceAcc?.accountNumber} balance verified ($${selectedSourceAcc?.balance}).`);
+    addLog(`CHECK_CONSTRAINT: Source Account #${selectedSourceAcc?.accountNumber} balance verified (₹${Number(selectedSourceAcc?.balance).toLocaleString('en-IN')}).`);
     addLog(`SELECT FOR UPDATE: Acquired row lock on account #${selectedSourceAcc?.accountNumber}.`);
-    addLog(`VERIFY_DESTINATION: Receiver IBAN ${toIban} format valid.`);
+    addLog(`VERIFY_DESTINATION: Receiver Identifier ${toIban} format valid.`);
   };
 
   const handleStageLedger = () => {
     setStage('staged');
-    addLog(`STAGING DEBIT: -${amount} USD from #${selectedSourceAcc?.accountNumber}`);
-    addLog(`STAGING CREDIT: +${amount} USD to IBAN ${toIban}`);
+    addLog(`STAGING DEBIT: -₹${amount.toLocaleString('en-IN')} INR from #${selectedSourceAcc?.accountNumber}`);
+    addLog(`STAGING CREDIT: +₹${amount.toLocaleString('en-IN')} INR to Account ${toIban}`);
     addLog(`WAL_LOG: Write-Ahead Log entry created (Pending Commit).`);
   };
 
@@ -259,7 +277,7 @@ export const AtomicTransferView: React.FC<{
     setStage('committed');
     addLog(`COMMIT TRANSACTION; -- All mutations successfully persisted to disk.`);
     addLog(`AUDIT_TRIGGER: Inserted record into audit_logs table (Status: Success).`);
-    onShowToast('ACID Commit Success', `Atomic transaction of $${amount.toLocaleString()} USD committed successfully.`, 'success');
+    onShowToast('ACID Commit Success', `Atomic transaction of ₹${amount.toLocaleString('en-IN')} INR committed successfully.`, 'success');
   };
 
   const handleRollback = () => {
@@ -293,7 +311,6 @@ export const AtomicTransferView: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Form Controls */}
         <div className="lg:col-span-6 bg-[#1E293B] p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
           <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-700 pb-3">
             <ArrowLeftRight className="w-5 h-5 text-blue-400" />
@@ -312,8 +329,8 @@ export const AtomicTransferView: React.FC<{
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500 disabled:opacity-50"
               >
                 {userAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.type} (#{a.accountNumber}) - ${a.balance.toLocaleString()} USD
+                  <option key={a.id} value={a.id.toString()}>
+                    {a.type} (#{a.accountNumber}) - ₹{Number(a.balance).toLocaleString('en-IN')} INR
                   </option>
                 ))}
               </select>
@@ -334,7 +351,7 @@ export const AtomicTransferView: React.FC<{
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Beneficiary IBAN
+                Beneficiary Account / Identifier
               </label>
               <input
                 type="text"
@@ -347,7 +364,7 @@ export const AtomicTransferView: React.FC<{
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Amount (USD)
+                Amount (INR)
               </label>
               <input
                 type="number"
@@ -359,7 +376,6 @@ export const AtomicTransferView: React.FC<{
             </div>
           </div>
 
-          {/* Workflow Step Buttons */}
           <div className="pt-4 border-t border-slate-700 space-y-2">
             {stage === 'idle' && (
               <button
@@ -422,7 +438,6 @@ export const AtomicTransferView: React.FC<{
           </div>
         </div>
 
-        {/* Transaction Log Monitor */}
         <div className="lg:col-span-6 bg-[#10172A] p-6 rounded-3xl border border-slate-700 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
@@ -471,24 +486,73 @@ export const AccountStatementView: React.FC<{
   transactions: Transaction[];
   currentUser: Customer;
   onShowToast: (title: string, desc: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
-}> = ({ accounts, transactions, currentUser, onShowToast }) => {
-  const [selectedAccount, setSelectedAccount] = useState<string>(accounts[0]?.id || '');
-  const [period, setPeriod] = useState<string>('30_days');
-
+  globalAccountId?: string;
+  setGlobalAccountId?: (id: string) => void;
+}> = ({ accounts, currentUser, onShowToast, globalAccountId, setGlobalAccountId }) => {
   const userAccs = accounts.filter((a) => a.customerName === currentUser.name) || accounts;
-  const activeAcc = accounts.find((a) => a.id === selectedAccount) || userAccs[0] || accounts[0];
-
-  const totalDeposits = transactions
-    .filter((t) => t.type === 'Deposit' && t.status === 'Completed')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalDebits = transactions
-    .filter((t) => (t.type === 'Withdrawal' || t.type === 'Transfer') && t.status === 'Completed')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const handleExportPDF = () => {
-    onShowToast('Statement Exported', `Official PDF statement for Account #${activeAcc?.accountNumber} generated successfully.`, 'success');
+  
+  const selectedAccount = globalAccountId || (userAccs[0] ? userAccs[0].id.toString() : '');
+  const setSelectedAccount = (val: string) => {
+    if (setGlobalAccountId) setGlobalAccountId(val);
   };
+
+  const [period, setPeriod] = useState<string>('30_days');
+  
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [statementData, setStatementData] = useState({
+    openingBalance: 0,
+    totalCredits: 0,
+    totalDebits: 0,
+    transactions: [] as Transaction[],
+  });
+
+  const activeAcc = accounts.find((a) => a.id.toString() === selectedAccount) || userAccs[0] || accounts[0];
+
+  const getPeriodDays = (p: string) => {
+    if (p === '30_days') return 30;
+    if (p === '90_days') return 90;
+    if (p === 'ytd') {
+      const start = new Date(new Date().getFullYear(), 0, 1);
+      const diff = Math.abs(new Date().getTime() - start.getTime());
+      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+    return 30;
+  };
+
+  useEffect(() => {
+    const fetchStatementData = async () => {
+      if (!selectedAccount) return;
+      setIsLoading(true);
+      
+      try {
+        const days = getPeriodDays(period);
+        const token = localStorage.getItem('token'); 
+        
+        const response = await fetch(`http://localhost:5000/api/transactions/statement?accountId=${selectedAccount}&periodDays=${days}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setStatementData({
+            openingBalance: data.openingBalance || 0,
+            totalCredits: data.totalCredits || 0,
+            totalDebits: data.totalDebits || 0,
+            transactions: data.transactions || [],
+          });
+        } else {
+          onShowToast('Fetch Error', 'Failed to retrieve official statement records.', 'error');
+        }
+      } catch (error) {
+        console.error('Statement fetch error:', error);
+        onShowToast('Network Error', 'Could not connect to the server to fetch statements.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStatementData();
+  }, [selectedAccount, period]);
 
   return (
     <div className="space-y-6">
@@ -507,7 +571,7 @@ export const AccountStatementView: React.FC<{
         </div>
 
         <button
-          onClick={handleExportPDF}
+          onClick={() => onShowToast('Exported', 'PDF downloaded successfully.', 'success')}
           className="flex items-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-blue-600/20 transition-all"
         >
           <Download className="w-4 h-4" />
@@ -515,7 +579,6 @@ export const AccountStatementView: React.FC<{
         </button>
       </div>
 
-      {/* Filter Bar */}
       <div className="bg-[#1E293B] p-4 rounded-2xl border border-slate-700 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
@@ -528,7 +591,7 @@ export const AccountStatementView: React.FC<{
               className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none"
             >
               {userAccs.map((a) => (
-                <option key={a.id} value={a.id}>
+                <option key={a.id} value={a.id.toString()}>
                   {a.type} (#{a.accountNumber})
                 </option>
               ))}
@@ -552,34 +615,43 @@ export const AccountStatementView: React.FC<{
         </div>
 
         <div className="text-right font-mono text-xs text-slate-400">
-          IBAN: <span className="text-white font-bold">{activeAcc?.iban}</span>
+          IBAN / Identifier: <span className="text-white font-bold">{activeAcc?.iban || '—'}</span>
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700">
+        <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 relative overflow-hidden">
+          {isLoading && <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px] flex items-center justify-center"><Loader2 className="w-5 h-5 text-blue-500 animate-spin" /></div>}
           <p className="text-xs text-slate-400 font-semibold">Opening Balance</p>
-          <p className="text-2xl font-black text-white font-mono mt-1">$200,000.00</p>
+          <p className="text-2xl font-black text-white font-mono mt-1">
+            ₹{statementData.openingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
         </div>
 
-        <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700">
+        <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 relative overflow-hidden">
+          {isLoading && <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px] flex items-center justify-center"><Loader2 className="w-5 h-5 text-emerald-500 animate-spin" /></div>}
           <p className="text-xs text-slate-400 font-semibold">Total Credits (Deposits)</p>
           <p className="text-2xl font-black text-emerald-400 font-mono mt-1">
-            +${totalDeposits.toLocaleString()}
+            +₹{statementData.totalCredits.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
 
-        <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700">
+        <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 relative overflow-hidden">
+          {isLoading && <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px] flex items-center justify-center"><Loader2 className="w-5 h-5 text-rose-500 animate-spin" /></div>}
           <p className="text-xs text-slate-400 font-semibold">Total Debits (Transfers/Withdrawals)</p>
           <p className="text-2xl font-black text-rose-400 font-mono mt-1">
-            -${totalDebits.toLocaleString()}
+            -₹{statementData.totalDebits.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
       </div>
 
-      {/* Statement Table */}
-      <div className="bg-[#1E293B] rounded-3xl border border-slate-700 p-6 shadow-xl">
+      <div className="bg-[#1E293B] rounded-3xl border border-slate-700 p-6 shadow-xl relative overflow-hidden">
+        {isLoading && (
+          <div className="absolute inset-0 z-10 bg-[#1E293B]/70 backdrop-blur-sm flex flex-col items-center justify-center">
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />
+            <p className="text-sm font-semibold text-slate-300">Fetching immutable ledger records...</p>
+          </div>
+        )}
         <h2 className="text-base font-bold text-white mb-4">Statement Line Items</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
@@ -593,25 +665,33 @@ export const AccountStatementView: React.FC<{
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
-              {transactions.map((t) => (
-                <tr key={t.id} className="hover:bg-slate-800/50 transition-colors">
-                  <td className="py-3 pl-2 font-mono font-bold text-white">{t.referenceNumber}</td>
-                  <td className="py-3 font-mono text-slate-300">{t.date} {t.time}</td>
-                  <td className="py-3 text-slate-200">{t.description || `${t.type} via ${t.branch}`}</td>
-                  <td className="py-3">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
-                      {t.type}
-                    </span>
-                  </td>
-                  <td
-                    className={`py-3 pr-2 text-right font-mono font-bold ${
-                      t.type === 'Deposit' ? 'text-emerald-400' : 'text-rose-400'
-                    }`}
-                  >
-                    {t.type === 'Deposit' ? '+' : '-'}${t.amount.toLocaleString()} USD
+              {statementData.transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-500">
+                    No transactions recorded for this statement period.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                statementData.transactions.map((t) => (
+                  <tr key={t.id} className="hover:bg-slate-800/50 transition-colors">
+                    <td className="py-3 pl-2 font-mono font-bold text-white">{t.referenceNumber || t.id}</td>
+                    <td className="py-3 font-mono text-slate-300">{t.date} {t.time}</td>
+                    <td className="py-3 text-slate-200">{t.description || `${t.type} via ${t.branch}`}</td>
+                    <td className="py-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                        {t.type}
+                      </span>
+                    </td>
+                    <td
+                      className={`py-3 pr-2 text-right font-mono font-bold ${
+                        t.type === 'Deposit' ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                    >
+                      {t.type === 'Deposit' ? '+' : '-'}₹{Number(t.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} INR
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -629,17 +709,14 @@ export const LoanAmortizationView: React.FC<{
   onShowToast: (title: string, desc: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
   onApplyLoan?: (loan: Partial<LoanApplication>) => void;
 }> = ({ loans, currentUser, onShowToast, onApplyLoan }) => {
-  // Calculator inputs
-  const [calcPrincipal, setCalcPrincipal] = useState<number>(250000);
-  const [calcRate, setCalcRate] = useState<number>(6.5);
+  const [calcPrincipal, setCalcPrincipal] = useState<number>(500000);
+  const [calcRate, setCalcRate] = useState<number>(8.5);
   const [calcTermMonths, setCalcTermMonths] = useState<number>(60);
 
-  // Apply Modal state
   const [applyOpen, setApplyOpen] = useState(false);
   const [loanType, setLoanType] = useState<'Personal Loan' | 'Home Mortgage' | 'Business Expansion' | 'Auto Loan'>('Personal Loan');
-  const [applyAmount, setApplyAmount] = useState<number>(100000);
+  const [applyAmount, setApplyAmount] = useState<number>(200000);
 
-  // Calculate Amortization
   const monthlyRate = calcRate / 100 / 12;
   const emi =
     (calcPrincipal * monthlyRate * Math.pow(1 + monthlyRate, calcTermMonths)) /
@@ -648,7 +725,6 @@ export const LoanAmortizationView: React.FC<{
   const totalPayable = emi * calcTermMonths;
   const totalInterest = totalPayable - calcPrincipal;
 
-  // Generate Amortization Schedule Table (First 12 months preview)
   const schedule = [];
   let remainingBalance = calcPrincipal;
   for (let month = 1; month <= Math.min(24, calcTermMonths); month++) {
@@ -672,15 +748,14 @@ export const LoanAmortizationView: React.FC<{
         customerId: currentUser.id,
         loanType,
         amount: applyAmount,
-        interestRate: 6.2,
+        interestRate: 8.5,
         termMonths: 48,
-        emi: (applyAmount * (6.2 / 1200) * Math.pow(1 + 6.2 / 1200, 48)) / (Math.pow(1 + 6.2 / 1200, 48) - 1),
+        emi: (applyAmount * (8.5 / 1200) * Math.pow(1 + 8.5 / 1200, 48)) / (Math.pow(1 + 8.5 / 1200, 48) - 1),
         status: 'Pending',
         appliedDate: new Date().toISOString().split('T')[0],
         creditScore: currentUser.creditScore || 800,
       });
     }
-    onShowToast('Loan Application Submitted', `Your application for $${applyAmount.toLocaleString()} USD has been routed to Branch Manager review.`, 'success');
     setApplyOpen(false);
   };
 
@@ -709,7 +784,6 @@ export const LoanAmortizationView: React.FC<{
         </button>
       </div>
 
-      {/* Active Customer Loans */}
       <div className="bg-[#1E293B] p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
         <h2 className="text-base font-bold text-white flex items-center gap-2">
           <Scale className="w-5 h-5 text-indigo-400" />
@@ -743,7 +817,7 @@ export const LoanAmortizationView: React.FC<{
               <div className="grid grid-cols-3 gap-2 text-xs border-t border-slate-800 pt-3 font-mono">
                 <div>
                   <p className="text-[10px] text-slate-400 font-sans">Principal Amount</p>
-                  <p className="font-bold text-white">${loan.amount.toLocaleString()}</p>
+                  <p className="font-bold text-white">₹{Number(loan.amount).toLocaleString('en-IN')}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400 font-sans">Interest APY</p>
@@ -751,7 +825,7 @@ export const LoanAmortizationView: React.FC<{
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400 font-sans">Monthly EMI</p>
-                  <p className="font-bold text-emerald-400">${loan.emi.toFixed(2)}</p>
+                  <p className="font-bold text-emerald-400">₹{Number(loan.emi).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </div>
@@ -759,7 +833,6 @@ export const LoanAmortizationView: React.FC<{
         </div>
       </div>
 
-      {/* Interactive Amortization Calculator */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-5 bg-[#1E293B] p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
           <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-700 pb-3">
@@ -771,13 +844,13 @@ export const LoanAmortizationView: React.FC<{
             <div>
               <div className="flex justify-between mb-1 text-slate-300">
                 <span>Principal Loan Amount</span>
-                <span className="font-mono font-bold text-white">${calcPrincipal.toLocaleString()}</span>
+                <span className="font-mono font-bold text-white">₹{calcPrincipal.toLocaleString('en-IN')}</span>
               </div>
               <input
                 type="range"
-                min={10000}
-                max={2000000}
-                step={10000}
+                min={25000}
+                max={5000000}
+                step={25000}
                 value={calcPrincipal}
                 onChange={(e) => setCalcPrincipal(Number(e.target.value))}
                 className="w-full accent-indigo-500"
@@ -792,7 +865,7 @@ export const LoanAmortizationView: React.FC<{
               <input
                 type="range"
                 min={2.0}
-                max={15.0}
+                max={20.0}
                 step={0.1}
                 value={calcRate}
                 onChange={(e) => setCalcRate(Number(e.target.value))}
@@ -803,7 +876,7 @@ export const LoanAmortizationView: React.FC<{
             <div>
               <div className="flex justify-between mb-1 text-slate-300">
                 <span>Tenure (Months)</span>
-                <span className="font-mono font-bold text-white">{calcTermMonths} months ({calcTermMonths / 12} yrs)</span>
+                <span className="font-mono font-bold text-white">{calcTermMonths} months ({(calcTermMonths / 12).toFixed(1)} yrs)</span>
               </div>
               <input
                 type="range"
@@ -820,20 +893,19 @@ export const LoanAmortizationView: React.FC<{
           <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
             <div className="flex justify-between text-xs text-slate-300">
               <span>Monthly EMI:</span>
-              <span className="font-bold font-mono text-emerald-400">${emi.toFixed(2)}</span>
+              <span className="font-bold font-mono text-emerald-400">₹{emi.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-xs text-slate-300">
               <span>Total Interest Payable:</span>
-              <span className="font-bold font-mono text-amber-400">${totalInterest.toFixed(2)}</span>
+              <span className="font-bold font-mono text-amber-400">₹{totalInterest.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between text-xs text-slate-300 border-t border-slate-800 pt-2 font-bold text-white">
               <span>Total Repayment:</span>
-              <span className="font-mono text-indigo-400">${totalPayable.toFixed(2)}</span>
+              <span className="font-mono text-indigo-400">₹{totalPayable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>
 
-        {/* Amortization Schedule Table Preview */}
         <div className="lg:col-span-7 bg-[#1E293B] p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
           <h2 className="text-base font-bold text-white flex items-center justify-between border-b border-slate-700 pb-3">
             <span>Amortization Schedule (Monthly Split)</span>
@@ -855,10 +927,10 @@ export const LoanAmortizationView: React.FC<{
                 {schedule.map((s) => (
                   <tr key={s.month} className="hover:bg-slate-800/50">
                     <td className="py-2.5 font-bold text-indigo-400">#{s.month}</td>
-                    <td className="py-2.5 text-white">${s.emi.toFixed(2)}</td>
-                    <td className="py-2.5 text-emerald-400">${s.principalPayment.toFixed(2)}</td>
-                    <td className="py-2.5 text-amber-400">${s.interestPayment.toFixed(2)}</td>
-                    <td className="py-2.5 text-right text-slate-300">${s.remainingBalance.toFixed(2)}</td>
+                    <td className="py-2.5 text-white">₹{s.emi.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="py-2.5 text-emerald-400">₹{s.principalPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="py-2.5 text-amber-400">₹{s.interestPayment.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="py-2.5 text-right text-slate-300">₹{s.remainingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   </tr>
                 ))}
               </tbody>
@@ -867,7 +939,6 @@ export const LoanAmortizationView: React.FC<{
         </div>
       </div>
 
-      {/* Loan Apply Modal */}
       {applyOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-[#1E293B] border border-slate-700 rounded-3xl p-6 w-full max-w-md space-y-4 shadow-2xl">
@@ -888,7 +959,7 @@ export const LoanAmortizationView: React.FC<{
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Requested Amount (USD)</label>
+                <label className="block text-slate-300 font-semibold mb-1">Requested Amount (INR)</label>
                 <input
                   type="number"
                   value={applyAmount}

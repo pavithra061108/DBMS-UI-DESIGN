@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, CheckCheck, Bell, Shield, ArrowUpRight, AlertTriangle, Info } from 'lucide-react';
+import { X, CheckCheck, Bell, Shield, ArrowUpRight, AlertTriangle, Info } from 'lucide-react';
 import { SystemNotification } from '../types/bank';
 
 interface NotificationModalProps {
@@ -42,8 +42,11 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   };
 
   return (
+    // The 'justify-end' class here ensures the panel docks to the right side of the screen
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fadeIn">
+      {/* The 'h-full max-w-md' makes it a full-height right sidebar */}
       <div className="w-full max-w-md bg-[#0B1E36] border-l border-white/10 h-full flex flex-col shadow-2xl">
+        
         {/* Header */}
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-[#050816]/50">
           <div className="flex items-center gap-3">

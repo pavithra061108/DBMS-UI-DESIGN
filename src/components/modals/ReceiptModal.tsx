@@ -32,8 +32,8 @@ Sender IBAN:   ${transaction.senderIban}
 Receiver:      ${transaction.receiverName}
 Receiver IBAN: ${transaction.receiverIban}
 --------------------------------------------------
-Amount:        $${transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${transaction.currency}
-Fee Charged:   $${transaction.fee.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${transaction.currency}
+Amount:        ₹${Number(transaction.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ${transaction.currency}
+Fee Charged:   ₹${Number(transaction.fee).toLocaleString('en-IN', { minimumFractionDigits: 2 })} ${transaction.currency}
 Branch:        ${transaction.branch}
 Description:   ${transaction.description || 'N/A'}
 ==================================================
@@ -79,9 +79,9 @@ Security: ACID Compliant - 256-Bit Encrypted
               Transaction {transaction.status}
             </p>
             <h2 className="text-3xl font-extrabold text-white font-mono-num">
-              ${transaction.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} <span className="text-sm font-normal text-slate-400">{transaction.currency}</span>
+              ₹{Number(transaction.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })} <span className="text-sm font-normal text-slate-400">{transaction.currency}</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">{transaction.date} • {transaction.time}</p>
+            <p className="text-xs text-slate-400 mt-1">{transaction.date} {transaction.time}</p>
           </div>
 
           <div className="space-y-3 text-sm">
@@ -117,7 +117,7 @@ Security: ACID Compliant - 256-Bit Encrypted
 
             <div className="flex justify-between py-1 border-b border-slate-800/50">
               <span className="text-slate-400">Processing Fee</span>
-              <span className="font-medium text-white">${transaction.fee.toFixed(2)} {transaction.currency}</span>
+              <span className="font-medium text-white">₹{Number(transaction.fee).toLocaleString('en-IN', { minimumFractionDigits: 2 })} {transaction.currency}</span>
             </div>
 
             <div className="flex justify-between py-1 border-b border-slate-800/50">

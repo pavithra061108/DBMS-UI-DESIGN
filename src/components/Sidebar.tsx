@@ -80,11 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Loan Status',
       icon: <Scale className="w-4 h-4" />,
     },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: <Bell className="w-4 h-4" />,
-    },
+    // The notifications tab was completely removed from here
     {
       id: 'profile',
       label: 'Profile',

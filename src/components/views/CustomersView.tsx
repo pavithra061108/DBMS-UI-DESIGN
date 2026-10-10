@@ -12,16 +12,18 @@ import {
   Landmark,
   User,
 } from 'lucide-react';
-import { Customer } from '../../types/bank';
+import { Customer, BankAccount } from '../../types/bank';
 
 interface CustomersViewProps {
   customers: Customer[];
+  accounts?: BankAccount[]; // Added to pull live account data
   onUpdateCustomer: (updated: Customer) => void;
   onShowToast: (title: string, desc: string, type: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 export const CustomersView: React.FC<CustomersViewProps> = ({
   customers,
+  accounts = [],
   onUpdateCustomer,
   onShowToast,
 }) => {
@@ -35,21 +37,22 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [editAddress, setEditAddress] = useState('');
   const [editStatus, setEditStatus] = useState<'Verified' | 'Pending KYC' | 'Flagged'>('Verified');
 
+  // Safely filter customers
   const filteredCustomers = customers.filter(
     (c) =>
-      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.accountNumber.includes(searchTerm) ||
-      c.id.toLowerCase().includes(searchTerm.toLowerCase())
+      (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.accountNumber || '').includes(searchTerm) ||
+      (c.id || '').toString().toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const openEditModal = (c: Customer) => {
     setEditingCustomer(c);
-    setEditName(c.name);
-    setEditEmail(c.email);
-    setEditPhone(c.phone);
-    setEditAddress(c.address);
-    setEditStatus(c.status);
+    setEditName(c.name || '');
+    setEditEmail(c.email || '');
+    setEditPhone(c.phone || '');
+    setEditAddress(c.address || '');
+    setEditStatus(c.status || 'Verified');
   };
 
   const handleSaveEdit = (e: React.FormEvent) => {
@@ -98,84 +101,102 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
 
       {/* Customer List Cards / Table */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCustomers.map((cust) => (
-          <div
-            key={cust.id}
-            className="bg-[#1E293B] border border-slate-700/80 rounded-3xl p-6 shadow-xl flex flex-col justify-between hover:border-[#3B82F6]/50 transition-all"
-          >
-            <div>
-              {/* Top Row: Avatar & Status */}
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={cust.avatar}
-                    alt={cust.name}
-                    className="w-12 h-12 rounded-2xl object-cover border-2 border-[#3B82F6]"
-                  />
-                  <div>
-                    <h3 className="text-base font-bold text-white">{cust.name}</h3>
-                    <p className="text-[11px] text-slate-400 font-mono">@{cust.username}</p>
+        {filteredCustomers.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-slate-500">
+            No customers found matching your search.
+          </div>
+        ) : (
+          filteredCustomers.map((cust) => {
+            // LINK REAL DATABASE ACCOUNTS TO THIS SPECIFIC CUSTOMER
+            const userAccounts = accounts.filter(
+              (a) => a.customerName === cust.name || (a as any).userId?.toString() === cust.id?.toString()
+            );
+            const primaryAcc = userAccounts[0];
+            const liveTotalBalance = userAccounts.reduce((sum, a) => sum + Number(a.balance || 0), 0);
+            
+            const displayAccountNumber = primaryAcc ? primaryAcc.accountNumber : (cust.accountNumber || 'No Account');
+            const displayAccountType = primaryAcc ? primaryAcc.type : (cust.accountType || 'N/A');
+
+            return (
+              <div
+                key={cust.id}
+                className="bg-[#1E293B] border border-slate-700/80 rounded-3xl p-6 shadow-xl flex flex-col justify-between hover:border-[#3B82F6]/50 transition-all"
+              >
+                <div>
+                  {/* Top Row: Avatar & Status */}
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={cust.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(cust.name || 'User')}&background=0F172A&color=3B82F6`}
+                        alt={cust.name}
+                        className="w-12 h-12 rounded-2xl object-cover border-2 border-[#3B82F6]"
+                      />
+                      <div>
+                        <h3 className="text-base font-bold text-white">{cust.name}</h3>
+                        <p className="text-[11px] text-slate-400 font-mono">@{cust.username || 'user'}</p>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
+                        cust.status === 'Verified'
+                          ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30'
+                          : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                      }`}
+                    >
+                      {cust.status || 'Verified'}
+                    </span>
+                  </div>
+
+                  {/* Contact Info */}
+                  <div className="space-y-2 text-xs text-slate-300 bg-[#0F172A] p-4 rounded-2xl border border-slate-800 mb-4">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
+                      <span className="truncate">{cust.email || 'No email provided'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
+                      <span>{cust.phone || 'No phone provided'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
+                      <span className="truncate">{cust.address || 'Address not on file'}</span>
+                    </div>
+                  </div>
+
+                  {/* LIVE Account Details */}
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-4">
+                    <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                      <span className="text-[10px] text-slate-400 block">Account Number</span>
+                      <span className="font-mono font-bold text-white">{displayAccountNumber}</span>
+                    </div>
+                    <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                      <span className="text-[10px] text-slate-400 block">Account Type</span>
+                      <span className="font-semibold text-white">{displayAccountType}</span>
+                    </div>
+                  </div>
+
+                  {/* LIVE Total Balance */}
+                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 rounded-2xl border border-blue-800/40 mb-4">
+                    <span className="text-xs text-slate-300 font-semibold">Total Balance</span>
+                    <span className="text-base font-black text-[#10B981] font-mono-num">
+                      ₹{liveTotalBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} INR
+                    </span>
                   </div>
                 </div>
 
-                <span
-                  className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
-                    cust.status === 'Verified'
-                      ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30'
-                      : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                  }`}
+                {/* Actions */}
+                <button
+                  onClick={() => openEditModal(cust)}
+                  className="w-full py-2.5 bg-slate-800 hover:bg-[#3B82F6] text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-700 hover:border-blue-500"
                 >
-                  {cust.status}
-                </span>
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>Edit Customer Details</span>
+                </button>
               </div>
-
-              {/* Contact Info */}
-              <div className="space-y-2 text-xs text-slate-300 bg-[#0F172A] p-4 rounded-2xl border border-slate-800 mb-4">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
-                  <span className="truncate">{cust.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
-                  <span>{cust.phone}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />
-                  <span className="truncate">{cust.address}</span>
-                </div>
-              </div>
-
-              {/* Account Details */}
-              <div className="grid grid-cols-2 gap-2 text-xs mb-4">
-                <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
-                  <span className="text-[10px] text-slate-400 block">Account Number</span>
-                  <span className="font-mono font-bold text-white">{cust.accountNumber}</span>
-                </div>
-                <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
-                  <span className="text-[10px] text-slate-400 block">Account Type</span>
-                  <span className="font-semibold text-white">{cust.accountType}</span>
-                </div>
-              </div>
-
-              {/* Total Balance */}
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 rounded-2xl border border-blue-800/40 mb-4">
-                <span className="text-xs text-slate-300 font-semibold">Total Balance</span>
-                <span className="text-base font-black text-[#10B981] font-mono-num">
-                  ${cust.totalBalance.toLocaleString()} USD
-                </span>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <button
-              onClick={() => openEditModal(cust)}
-              className="w-full py-2.5 bg-slate-800 hover:bg-[#3B82F6] text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-700 hover:border-blue-500"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-              <span>Edit Customer Details</span>
-            </button>
-          </div>
-        ))}
+            );
+          })
+        )}
       </div>
 
       {/* Edit Customer Modal */}
@@ -224,7 +245,6 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                   <label className="block text-slate-300 font-semibold mb-1">Mobile Phone</label>
                   <input
                     type="text"
-                    required
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
                     className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2 px-3 text-white focus:outline-none focus:border-[#3B82F6]"
@@ -236,7 +256,6 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 <label className="block text-slate-300 font-semibold mb-1">Residential Address</label>
                 <input
                   type="text"
-                  required
                   value={editAddress}
                   onChange={(e) => setEditAddress(e.target.value)}
                   className="w-full bg-[#0F172A] border border-slate-700 rounded-xl py-2 px-3 text-white focus:outline-none focus:border-[#3B82F6]"
@@ -260,13 +279,13 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setEditingCustomer(null)}
-                  className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold"
+                  className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-[#3B82F6] hover:bg-blue-600 text-white rounded-xl font-bold"
+                  className="w-1/2 py-2.5 bg-[#3B82F6] hover:bg-blue-600 text-white rounded-xl font-bold transition shadow-lg shadow-blue-500/20"
                 >
                   Save Changes
                 </button>

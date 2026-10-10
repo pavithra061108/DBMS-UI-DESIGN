@@ -110,14 +110,14 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
     onApplyLoan({
       customerName: currentUser.name,
       customerId: currentUser.id,
-      loanType,
+      // Tell TypeScript this string matches the interface's strict union
+      loanType: loanType as LoanApplication['loanType'], 
       amount: principal,
       interestRate: rate,
       termMonths: months,
       emi: Number(emi.toFixed(2)),
       creditScore: currentUser.creditScore || 0,
     });
-
     setShowApplyForm(false);
     onShowToast(
       'Application Submitted',
@@ -266,12 +266,16 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
 
             <form onSubmit={handleApply} className="space-y-4">
               <Field label="Loan Type">
-                <select value={loanType} onChange={(e) => setLoanType(e.target.value)} className={inputClass}>
-                  <option>Personal Loan</option>
-                  <option>Home Mortgage</option>
-                  <option>Vehicle Loan</option>
-                  <option>Education Loan</option>
-                  <option>Business Expansion</option>
+                <select 
+                  value={loanType} 
+                  onChange={(e) => setLoanType(e.target.value)} 
+                  className={inputClass}
+                >
+                  <option value="Personal Loan">Personal Loan</option>
+                  <option value="Home Mortgage">Home Mortgage</option>
+                  <option value="Auto Loan">Auto Loan</option>
+                  <option value="Education Loan">Education Loan</option>
+                  <option value="Business Expansion">Business Expansion</option>
                 </select>
               </Field>
               <Field label="Loan Amount (USD)">
