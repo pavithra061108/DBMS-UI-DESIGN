@@ -6,6 +6,7 @@ import {
   SystemNotification,
   ToastMessage,
   NavigationTab,
+  ActiveTab,
   PublicPage,
   UserRole,
   LoanApplication,
@@ -38,8 +39,12 @@ import { TransactionsView } from './components/views/TransactionsView';
 import { ProfileView } from './components/views/ProfileView';
 import { SettingsView } from './components/views/SettingsView';
 import { AccessDeniedView } from './components/views/AccessDeniedView';
+import BranchManagementView from './components/views/BranchManagementView';
+import ReportsAnalyticsView from './components/views/ReportsAnalyticsView';
+import UserSystemAdminView from './components/views/UserSystemAdminView';
+import ApexAdminDashboard from './components/views/ApexAdminDashboard';
 
-// Role-Specific Concept Views
+// Customer and Admin views
 import {
   BalanceOverviewView,
   AtomicTransferView,
@@ -47,27 +52,9 @@ import {
 } from './components/views/CustomerViews';
 import { LoanStatusView } from './components/views/LoanStatusView';
 import {
-  TellerDashboardView,
-  TellerDepositView,
-  TellerWithdrawalView,
-  TellerDailySummaryView,
-  ChequeClearingView,
-} from './components/views/TellerViews';
-import {
-  ManagerDashboardView,
-  BranchLiquidityView,
-  LoanManagementView,
-  BranchMetricsView,
-  ManagerReportsView,
-} from './components/views/ManagerViews';
-import {
   AdminDashboardView,
-  UserManagementView,
-  RoleManagementView,
-  AuditLogsView,
-  DatabaseHealthView,
-  DatabaseBackupView,
 } from './components/views/AdminViews';
+import { LoanManagementView } from './components/views/ManagerViews';
 
 export function App() {
   // Authentication & Public Pages State
@@ -122,83 +109,43 @@ export function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Auth Handlers
+  // Auth Handlers: only Customer and Admin roles are supported.
   const handleLoginSuccess = (emailOrUsername: string, role: UserRole) => {
     setCurrentRole(role);
 
-    // Pick appropriate demo user profile
     let matchedUser = customers.find(
-      (c) =>
-        c.email.toLowerCase() === emailOrUsername.toLowerCase() ||
-        c.username.toLowerCase() === emailOrUsername.toLowerCase()
+      (customer) =>
+        customer.email.toLowerCase() === emailOrUsername.toLowerCase() ||
+        customer.username.toLowerCase() === emailOrUsername.toLowerCase()
     );
 
-    if (!matchedUser) {
-      if (role === 'teller') {
-        matchedUser = {
-          id: 'TELLER-01',
-          name: 'David Miller',
-          username: 'teller_david',
-          email: 'd.miller@apexbank.com',
-          phone: '+1 (555) 301-4491',
-          address: '458 Branch Plaza, NY',
-          accountNumber: 'TEL-8801',
-          accountType: 'Savings',
-          branch: 'Main Financial Hub',
-          status: 'Verified',
-          totalBalance: 0,
-          creditScore: 820,
-          joinedDate: '2021-03-15',
-          role: 'teller',
-        };
-      } else if (role === 'manager') {
-        matchedUser = {
-          id: 'MGR-01',
-          name: 'Sarah Jenkins',
-          username: 'mgr_sarah',
-          email: 's.jenkins@apexbank.com',
-          phone: '+1 (555) 902-1182',
-          address: '700 Wall St Executive Suite, NY',
-          accountNumber: 'MGR-9901',
-          accountType: 'Checking',
-          branch: 'Main Financial Hub',
-          status: 'Verified',
-          totalBalance: 0,
-          creditScore: 850,
-          joinedDate: '2018-06-01',
-          role: 'manager',
-        };
-      } else if (role === 'admin') {
-        matchedUser = {
-          id: 'DBA-01',
-          name: 'Alexander Vance',
-          username: 'dba_root',
-          email: 'a.vance@apexbank.com',
-          phone: '+1 (555) 000-1337',
-          address: 'Data Center HQ, Cluster 01',
-          accountNumber: 'ADM-0001',
-          accountType: 'Checking',
-          branch: 'System Core Node',
-          status: 'Verified',
-          totalBalance: 0,
-          creditScore: 850,
-          joinedDate: '2015-01-01',
-          role: 'admin',
-        };
-      } else {
-        matchedUser = customers[0];
-      }
+    if (role === 'admin') {
+      matchedUser = {
+        id: 'DBA-01',
+        name: 'Alexander Vance',
+        username: 'dba_root',
+        email: 'a.vance@apexbank.com',
+        phone: '+1 (555) 000-1337',
+        address: 'Data Center HQ, Cluster 01',
+        accountNumber: 'ADM-0001',
+        accountType: 'Checking',
+        branch: 'System Core Node',
+        status: 'Verified',
+        totalBalance: 0,
+        creditScore: 850,
+        joinedDate: '2015-01-01',
+        avatar: '',
+        role: 'admin',
+      };
+    } else if (!matchedUser) {
+      matchedUser = customers[0];
     } else {
-      matchedUser = { ...matchedUser, role };
+      matchedUser = { ...matchedUser, role: 'customer' };
     }
 
     setCurrentUser(matchedUser);
     setIsAuthenticated(true);
-
-    if (role === 'teller') setCurrentTab('teller_dashboard');
-    else if (role === 'manager') setCurrentTab('manager_dashboard');
-    else if (role === 'admin') setCurrentTab('admin_dashboard');
-    else setCurrentTab('dashboard');
+    setCurrentTab(role === 'admin' ? 'admin_dashboard' : 'customer_dashboard');
 
     showToast(
       'Session Authorized',
@@ -258,7 +205,7 @@ export function App() {
     setCurrentUser(newCustomer);
     setCurrentRole('customer');
     setIsAuthenticated(true);
-    setCurrentTab('dashboard');
+    setCurrentTab('customer_dashboard');
 
     showToast(
       'Account Created',
@@ -273,75 +220,9 @@ export function App() {
     showToast('Logged Out', 'You have been securely signed out of your account.', 'info');
   };
 
-  // Role Switcher Handler inside App
-  const handleSwitchRole = (newRole: UserRole) => {
-    setCurrentRole(newRole);
-
-    let matchedUser = customers[0];
-    if (newRole === 'teller') {
-      matchedUser = {
-        id: 'TELLER-01',
-        name: 'David Miller',
-        username: 'teller_david',
-        email: 'd.miller@apexbank.com',
-        phone: '+1 (555) 301-4491',
-        address: '458 Branch Plaza, NY',
-        accountNumber: 'TEL-8801',
-        accountType: 'Savings',
-        branch: 'Main Financial Hub',
-        status: 'Verified',
-        totalBalance: 0,
-        creditScore: 820,
-        joinedDate: '2021-03-15',
-        role: 'teller',
-      };
-      setCurrentTab('teller_dashboard');
-    } else if (newRole === 'manager') {
-      matchedUser = {
-        id: 'MGR-01',
-        name: 'Sarah Jenkins',
-        username: 'mgr_sarah',
-        email: 's.jenkins@apexbank.com',
-        phone: '+1 (555) 902-1182',
-        address: '700 Wall St Executive Suite, NY',
-        accountNumber: 'MGR-9901',
-        accountType: 'Checking',
-        branch: 'Main Financial Hub',
-        status: 'Verified',
-        totalBalance: 0,
-        creditScore: 850,
-        joinedDate: '2018-06-01',
-        role: 'manager',
-      };
-      setCurrentTab('manager_dashboard');
-    } else if (newRole === 'admin') {
-      matchedUser = {
-        id: 'DBA-01',
-        name: 'Alexander Vance',
-        username: 'dba_root',
-        email: 'a.vance@apexbank.com',
-        phone: '+1 (555) 000-1337',
-        address: 'Data Center HQ, Cluster 01',
-        accountNumber: 'ADM-0001',
-        accountType: 'Checking',
-        branch: 'System Core Node',
-        status: 'Verified',
-        totalBalance: 0,
-        creditScore: 850,
-        joinedDate: '2015-01-01',
-        role: 'admin',
-      };
-      setCurrentTab('admin_dashboard');
-    } else {
-      setCurrentTab('dashboard');
-    }
-
-    setCurrentUser(matchedUser);
-    showToast(
-      'Role Scope Changed',
-      `Switched to ${newRole.toUpperCase()} mode. Access controls adjusted.`,
-      'info'
-    );
+  // Role switching is intentionally disabled; users choose their role at login.
+  const handleSwitchRole = (_newRole: UserRole) => {
+    showToast('Role Switching Disabled', 'Please log out and sign in with the intended role.', 'info');
   };
 
   // Deposit, Withdraw & Transfer Actions Handler
@@ -484,65 +365,22 @@ export function App() {
     }
   };
 
-  // Helper to check role permission for current tab
+  // Role-based tab permissions
   const isTabAllowed = (role: UserRole, tab: string): boolean => {
-    const allowedMap: Record<UserRole, string[]> = {
-      customer: [
-        'customer_dashboard',
-        'dashboard',
-        'my_accounts',
-        'accounts',
-        'balance_overview',
-        'money_transfer',
-        'transaction_history',
-        'transactions',
-        'account_statement',
-        'loan_status',
-        'notifications',
-        'profile',
-        'settings',
-      ],
-      teller: [
-        'teller_dashboard',
-        'dashboard',
-        'customer_search',
-        'customers',
-        'deposit',
-        'withdrawal',
-        'cheque_clearing',
-        'transaction_queue',
-        'daily_transactions',
-        'notifications',
-        'settings',
-        'profile',
-      ],
-      manager: [
-        'manager_dashboard',
-        'dashboard',
-        'branch_liquidity',
-        'loan_approval',
-        'branch_metrics',
-        'manager_reports',
-        'notifications',
-        'settings',
-        'profile',
-      ],
-      admin: [
-        'admin_dashboard',
-        'dashboard',
-        'user_management',
-        'customers',
-        'role_management',
-        'audit_logs',
-        'database_health',
-        'database_backup',
-        'notifications',
-        'settings',
-        'profile',
-      ],
-    };
-
-    return allowedMap[role]?.includes(tab) ?? false;
+    const customerTabs = [
+      'customer_dashboard', 'dashboard', 'my_accounts', 'accounts',
+      'balance_overview', 'money_transfer', 'transaction_history',
+      'transactions', 'account_statement', 'loan_status', 'notifications',
+      'profile', 'settings',
+    ];
+    const adminTabs = [
+      'admin_dashboard', 'customer_management', 'account_management',
+      'transaction_management', 'loan_management', 'branch_management',
+      'reports_analytics', 'user_system_admin', 'user_management',
+      'role_management', 'audit_logs', 'database_health', 'database_backup',
+      'notifications', 'profile', 'settings',
+    ];
+    return (role === 'admin' ? adminTabs : customerTabs).includes(tab);
   };
 
   // --- UNAUTHENTICATED RENDER ---
@@ -600,8 +438,8 @@ export function App() {
       {/* Sidebar Navigation */}
       <Sidebar
         currentRole={currentRole}
-        currentTab={currentTab}
-        onSelectTab={setCurrentTab}
+        currentTab={currentTab as ActiveTab}
+        onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         onLogout={handleLogout}
@@ -614,11 +452,12 @@ export function App() {
           currentRole={currentRole}
           currentUser={currentUser}
           unreadNotifCount={unreadNotifCount}
+          activeTabLabel={currentTab.replace(/_/g, ' ')}
           onOpenNotifications={() => setNotifModalOpen(true)}
           onOpenQuickAction={(action) => setActionModal({ isOpen: true, type: action })}
           onSelectTab={setCurrentTab}
           onLogout={handleLogout}
-          onSwitchRole={handleSwitchRole}
+          onChangeRole={handleSwitchRole}
         />
 
         {/* View Workspace Container */}
@@ -628,10 +467,7 @@ export function App() {
               currentRole={currentRole}
               attemptedTab={currentTab}
               onGoDashboard={() => {
-                if (currentRole === 'teller') setCurrentTab('teller_dashboard');
-                else if (currentRole === 'manager') setCurrentTab('manager_dashboard');
-                else if (currentRole === 'admin') setCurrentTab('admin_dashboard');
-                else setCurrentTab('dashboard');
+                setCurrentTab(currentRole === 'admin' ? 'admin_dashboard' : 'customer_dashboard');
               }}
             />
           ) : (
@@ -639,14 +475,11 @@ export function App() {
               {/* Customer Scope Views */}
               {(currentTab === 'dashboard' || currentTab === 'customer_dashboard') && currentRole === 'customer' && (
                 <DashboardView
-                  currentRole={currentRole}
                   currentUser={currentUser}
                   accounts={accounts}
                   transactions={transactions}
-                  customers={customers}
                   onOpenActionModal={(action) => setActionModal({ isOpen: true, type: action })}
                   onSelectTab={setCurrentTab}
-                  onShowToast={showToast}
                 />
               )}
 
@@ -671,7 +504,6 @@ export function App() {
               {(currentTab === 'transaction_history' || currentTab === 'transactions') && (
                 <TransactionsView
                   transactions={transactions}
-                  onOpenTransferModal={() => setActionModal({ isOpen: true, type: 'transfer' })}
                   onShowToast={showToast}
                 />
               )}
@@ -711,19 +543,16 @@ export function App() {
                 />
               )}
 
-              {/* Teller Scope Views */}
-              {(currentTab === 'teller_dashboard' || (currentTab === 'dashboard' && currentRole === 'teller') || currentTab === 'transaction_queue') && (
-                <TellerDashboardView
-                  currentTab={currentTab}
-                  customers={customers}
-                  accounts={accounts}
-                  transactions={transactions}
-                  onOpenActionModal={(action, acc) => setActionModal({ isOpen: true, type: action, targetAccount: acc })}
+              {/* Redesigned Admin Dashboard */}
+              {currentRole === 'admin' && currentTab === 'admin_dashboard' && (
+                <ApexAdminDashboard
                   onShowToast={showToast}
+                  onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)}
                 />
               )}
 
-              {(currentTab === 'customer_search' || (currentTab === 'customers' && currentRole === 'teller')) && (
+              {/* Admin: customer management */}
+              {currentRole === 'admin' && currentTab === 'customer_management' && (
                 <CustomersView
                   customers={customers}
                   onUpdateCustomer={handleUpdateCustomer}
@@ -731,47 +560,27 @@ export function App() {
                 />
               )}
 
-              {currentTab === 'deposit' && (
-                <TellerDepositView
-                  customers={customers}
+              {/* Admin: account management */}
+              {currentRole === 'admin' && currentTab === 'account_management' && (
+                <AccountsView
                   accounts={accounts}
                   transactions={transactions}
-                  onShowToast={showToast}
-                  onProcessDeposit={handleProcessDeposit}
+                  onOpenActionModal={(action, account) =>
+                    setActionModal({ isOpen: true, type: action, targetAccount: account })
+                  }
                 />
               )}
 
-              {currentTab === 'withdrawal' && (
-                <TellerWithdrawalView
-                  customers={customers}
-                  accounts={accounts}
+              {/* Admin: transaction management */}
+              {currentRole === 'admin' && currentTab === 'transaction_management' && (
+                <TransactionsView
                   transactions={transactions}
                   onShowToast={showToast}
-                  onProcessWithdrawal={handleProcessWithdrawal}
                 />
               )}
 
-              {currentTab === 'daily_transactions' && (
-                <TellerDailySummaryView transactions={transactions} />
-              )}
-
-              {currentTab === 'cheque_clearing' && (
-                <ChequeClearingView onShowToast={showToast} />
-              )}
-
-              {/* Branch Manager Scope Views */}
-              {(currentTab === 'manager_dashboard' || (currentTab === 'dashboard' && currentRole === 'manager')) && (
-                <ManagerDashboardView
-                  currentTab={currentTab}
-                  loans={loans}
-                  onShowToast={showToast}
-                  onUpdateLoanStatus={handleUpdateLoanStatus}
-                />
-              )}
-
-              {currentTab === 'branch_liquidity' && <BranchLiquidityView />}
-
-              {currentTab === 'loan_approval' && (
+              {/* Admin: loan management */}
+              {currentRole === 'admin' && currentTab === 'loan_management' && (
                 <LoanManagementView
                   loans={loans}
                   onShowToast={showToast}
@@ -779,24 +588,38 @@ export function App() {
                 />
               )}
 
-              {currentTab === 'branch_metrics' && <BranchMetricsView />}
+              {/* Admin: branch management */}
+              {currentRole === 'admin' && currentTab === 'branch_management' && (
+                <BranchManagementView />
+              )}
 
-              {currentTab === 'manager_reports' && <ManagerReportsView onShowToast={showToast} />}
+              {/* Admin: reports and analytics */}
+              {currentRole === 'admin' && currentTab === 'reports_analytics' && (
+                <ReportsAnalyticsView />
+              )}
 
-              {/* Database Administrator (DBA) Scope Views */}
-              {(currentTab === 'admin_dashboard' || (currentTab === 'dashboard' && currentRole === 'admin')) && (
+              {/* Admin: user and system administration */}
+              {currentRole === 'admin' && currentTab === 'user_system_admin' && (
+                <UserSystemAdminView />
+              )}
+
+              {/* Legacy Admin pages remain available if selected from existing links */}
+              {currentRole === 'admin' && currentTab === 'user_management' && (
+                <UserSystemAdminView />
+              )}
+              {currentRole === 'admin' && currentTab === 'role_management' && (
+                <UserSystemAdminView />
+              )}
+              {currentRole === 'admin' && currentTab === 'audit_logs' && (
+                <AdminDashboardView currentTab={currentTab} onShowToast={showToast} />
+              )}
+              {currentRole === 'admin' && currentTab === 'database_health' && (
+                <AdminDashboardView currentTab={currentTab} onShowToast={showToast} />
+              )}
+              {currentRole === 'admin' && currentTab === 'database_backup' && (
                 <AdminDashboardView currentTab={currentTab} onShowToast={showToast} />
               )}
 
-              {currentTab === 'user_management' && <UserManagementView onShowToast={showToast} />}
-
-              {currentTab === 'role_management' && <RoleManagementView onShowToast={showToast} />}
-
-              {currentTab === 'audit_logs' && <AuditLogsView onShowToast={showToast} />}
-
-              {currentTab === 'database_health' && <DatabaseHealthView onShowToast={showToast} />}
-
-              {currentTab === 'database_backup' && <DatabaseBackupView onShowToast={showToast} />}
             </>
           )}
         </main>

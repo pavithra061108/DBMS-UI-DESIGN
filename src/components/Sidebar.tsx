@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   LayoutDashboard,
   Users,
@@ -9,25 +10,16 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  Search,
-  PlusCircle,
-  MinusCircle,
-  FileCheck2,
-  ListOrdered,
   History,
   Scale,
-  CheckSquare,
   BarChart3,
-  FileSpreadsheet,
   UserCog,
-  ShieldAlert,
-  ScrollText,
-  Activity,
-  HardDriveDownload,
   Bell,
   Settings as SettingsIcon,
   PieChart,
   Receipt,
+  Building2,
+  HandCoins,
 } from 'lucide-react';
 
 import { UserRole, ActiveTab } from '../types/bank';
@@ -49,8 +41,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   onLogout,
 }) => {
-  // Customer navigation
-  // Money Transfer has been removed from this sidebar.
+  // ============================================
+  // CUSTOMER NAVIGATION
+  // ============================================
+
   const customerItems: {
     id: ActiveTab;
     label: string;
@@ -103,93 +97,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
-  // Teller navigation
-  const tellerItems: {
-    id: ActiveTab;
-    label: string;
-    icon: React.ReactNode;
-  }[] = [
-    {
-      id: 'teller_dashboard',
-      label: 'Dashboard',
-      icon: <LayoutDashboard className="w-4 h-4" />,
-    },
-    {
-      id: 'customer_search',
-      label: 'Customer Search',
-      icon: <Search className="w-4 h-4" />,
-    },
-    {
-      id: 'deposit',
-      label: 'Deposit',
-      icon: <PlusCircle className="w-4 h-4" />,
-    },
-    {
-      id: 'withdrawal',
-      label: 'Withdrawal',
-      icon: <MinusCircle className="w-4 h-4" />,
-    },
-    {
-      id: 'cheque_clearing',
-      label: 'Cheque Clearing',
-      icon: <FileCheck2 className="w-4 h-4" />,
-    },
-    {
-      id: 'transaction_queue',
-      label: 'Transaction Queue',
-      icon: <ListOrdered className="w-4 h-4" />,
-    },
-    {
-      id: 'daily_transactions',
-      label: 'Daily Transactions',
-      icon: <History className="w-4 h-4" />,
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: <SettingsIcon className="w-4 h-4" />,
-    },
-  ];
+  // ============================================
+  // ADMIN NAVIGATION
+  // ============================================
 
-  // Manager navigation
-  const managerItems: {
-    id: ActiveTab;
-    label: string;
-    icon: React.ReactNode;
-  }[] = [
-    {
-      id: 'manager_dashboard',
-      label: 'Dashboard',
-      icon: <LayoutDashboard className="w-4 h-4" />,
-    },
-    {
-      id: 'branch_liquidity',
-      label: 'Branch Liquidity',
-      icon: <Scale className="w-4 h-4" />,
-    },
-    {
-      id: 'loan_approval',
-      label: 'Loan Approval',
-      icon: <CheckSquare className="w-4 h-4" />,
-    },
-    {
-      id: 'branch_metrics',
-      label: 'Branch Metrics',
-      icon: <BarChart3 className="w-4 h-4" />,
-    },
-    {
-      id: 'manager_reports',
-      label: 'Manager Reports',
-      icon: <FileSpreadsheet className="w-4 h-4" />,
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: <SettingsIcon className="w-4 h-4" />,
-    },
-  ];
-
-  // Admin navigation
   const adminItems: {
     id: ActiveTab;
     label: string;
@@ -201,29 +112,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <LayoutDashboard className="w-4 h-4" />,
     },
     {
-      id: 'user_management',
-      label: 'User Management',
+      id: 'customer_management',
+      label: 'Customer Management',
+      icon: <Users className="w-4 h-4" />,
+    },
+    {
+      id: 'account_management',
+      label: 'Account Management',
+      icon: <Landmark className="w-4 h-4" />,
+    },
+    {
+      id: 'transaction_management',
+      label: 'Transaction Management',
+      icon: <ArrowLeftRight className="w-4 h-4" />,
+    },
+    {
+      id: 'loan_management',
+      label: 'Loan Management',
+      icon: <HandCoins className="w-4 h-4" />,
+    },
+    {
+      id: 'branch_management',
+      label: 'Branch Management',
+      icon: <Building2 className="w-4 h-4" />,
+    },
+    {
+      id: 'reports_analytics',
+      label: 'Reports & Analytics',
+      icon: <BarChart3 className="w-4 h-4" />,
+    },
+    {
+      id: 'user_system_admin',
+      label: 'User & System Administration',
       icon: <UserCog className="w-4 h-4" />,
-    },
-    {
-      id: 'role_management',
-      label: 'Role Management',
-      icon: <ShieldAlert className="w-4 h-4" />,
-    },
-    {
-      id: 'audit_logs',
-      label: 'Audit Logs',
-      icon: <ScrollText className="w-4 h-4" />,
-    },
-    {
-      id: 'database_health',
-      label: 'Database Health',
-      icon: <Activity className="w-4 h-4" />,
-    },
-    {
-      id: 'database_backup',
-      label: 'Database Backup',
-      icon: <HardDriveDownload className="w-4 h-4" />,
     },
     {
       id: 'settings',
@@ -232,32 +153,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
-  // Select navigation items based on the current role.
-  const getRoleMenuItems = () => {
-    switch (currentRole) {
-      case 'teller':
-        return tellerItems;
+  // ============================================
+  // ROLE-BASED NAVIGATION
+  // ============================================
 
-      case 'manager':
-        return managerItems;
-
-      case 'admin':
-        return adminItems;
-
-      case 'customer':
-      default:
-        return customerItems;
-    }
-  };
-
-  const menuItems = getRoleMenuItems();
+  const menuItems = currentRole === 'admin' ? adminItems : customerItems;
 
   const roleTitles: Record<UserRole, string> = {
     customer: 'Customer Portal',
-    teller: 'Bank Teller Desk',
-    manager: 'Branch Manager',
-    admin: 'DB Administrator',
+    admin: 'Bank Administrator',
   };
+
+  // ============================================
+  // SIDEBAR UI
+  // ============================================
 
   return (
     <aside
@@ -266,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
-      {/* Top Logo Section */}
+      {/* Logo Section */}
       <div className="p-5 flex items-center justify-between border-b border-slate-800">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="w-10 h-10 shrink-0 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20 glow-primary">
@@ -291,6 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={onToggleCollapse}
           className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? (
             <ChevronRight className="w-5 h-5" />
@@ -322,6 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
               }`}
               title={collapsed ? item.label : undefined}
+              aria-current={isActive ? 'page' : undefined}
             >
               <div
                 className={`transition-colors shrink-0 ${

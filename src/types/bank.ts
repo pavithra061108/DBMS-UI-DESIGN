@@ -1,6 +1,23 @@
-export type UserRole = 'customer' | 'teller' | 'manager' | 'admin';
+// ============================================
+// USER ROLES
+// ============================================
 
-export type PublicPage = 'landing' | 'login' | 'register' | 'about' | 'contact';
+export type UserRole = 'customer' | 'admin';
+
+// ============================================
+// PUBLIC PAGES
+// ============================================
+
+export type PublicPage =
+  | 'landing'
+  | 'login'
+  | 'register'
+  | 'about'
+  | 'contact';
+
+// ============================================
+// CUSTOMER NAVIGATION
+// ============================================
 
 export type CustomerTab =
   | 'customer_dashboard'
@@ -14,26 +31,19 @@ export type CustomerTab =
   | 'profile'
   | 'settings';
 
-export type TellerTab =
-  | 'teller_dashboard'
-  | 'customer_search'
-  | 'deposit'
-  | 'withdrawal'
-  | 'cheque_clearing'
-  | 'transaction_queue'
-  | 'daily_transactions'
-  | 'settings';
-
-export type ManagerTab =
-  | 'manager_dashboard'
-  | 'branch_liquidity'
-  | 'loan_approval'
-  | 'branch_metrics'
-  | 'manager_reports'
-  | 'settings';
+// ============================================
+// ADMIN NAVIGATION
+// ============================================
 
 export type AdminTab =
   | 'admin_dashboard'
+  | 'customer_management'
+  | 'account_management'
+  | 'transaction_management'
+  | 'loan_management'
+  | 'branch_management'
+  | 'reports_analytics'
+  | 'user_system_admin'
   | 'user_management'
   | 'role_management'
   | 'audit_logs'
@@ -41,11 +51,35 @@ export type AdminTab =
   | 'database_backup'
   | 'settings';
 
-export type ActiveTab = CustomerTab | TellerTab | ManagerTab | AdminTab;
+// ============================================
+// ACTIVE NAVIGATION TAB
+// ============================================
+
+export type ActiveTab = CustomerTab | AdminTab;
+
 export type NavigationTab = ActiveTab | string;
 
-export type AccountType = 'Savings' | 'Checking' | 'Investment' | 'Money Market' | 'Current' | 'Fixed Deposit';
-export type AccountStatus = 'Active' | 'Dormant' | 'Frozen' | 'Closed';
+// ============================================
+// ACCOUNT TYPES
+// ============================================
+
+export type AccountType =
+  | 'Savings'
+  | 'Checking'
+  | 'Investment'
+  | 'Money Market'
+  | 'Current'
+  | 'Fixed Deposit';
+
+export type AccountStatus =
+  | 'Active'
+  | 'Dormant'
+  | 'Frozen'
+  | 'Closed';
+
+// ============================================
+// CUSTOMER
+// ============================================
 
 export interface Customer {
   id: string;
@@ -65,6 +99,10 @@ export interface Customer {
   role?: UserRole;
 }
 
+// ============================================
+// BANK ACCOUNT
+// ============================================
+
 export interface BankAccount {
   id: string;
   accountNumber: string;
@@ -79,8 +117,23 @@ export interface BankAccount {
   openedDate: string;
 }
 
-export type TransactionStatus = 'Completed' | 'Pending' | 'Failed' | 'In Review';
-export type TransactionType = 'Deposit' | 'Withdrawal' | 'Transfer' | 'Cheque' | 'SWIFT Transfer' | 'Wire Transfer';
+// ============================================
+// TRANSACTIONS
+// ============================================
+
+export type TransactionStatus =
+  | 'Completed'
+  | 'Pending'
+  | 'Failed'
+  | 'In Review';
+
+export type TransactionType =
+  | 'Deposit'
+  | 'Withdrawal'
+  | 'Transfer'
+  | 'Cheque'
+  | 'SWIFT Transfer'
+  | 'Wire Transfer';
 
 export interface Transaction {
   id: string;
@@ -102,11 +155,19 @@ export interface Transaction {
   tellerId?: string;
 }
 
+// ============================================
+// LOAN APPLICATION
+// ============================================
+
 export interface LoanApplication {
   id: string;
   customerName: string;
   customerId: string;
-  loanType: 'Personal Loan' | 'Home Mortgage' | 'Business Expansion' | 'Auto Loan';
+  loanType:
+    | 'Personal Loan'
+    | 'Home Mortgage'
+    | 'Business Expansion'
+    | 'Auto Loan';
   amount: number;
   interestRate: number;
   termMonths: number;
@@ -116,6 +177,10 @@ export interface LoanApplication {
   appliedDate: string;
   creditScore: number;
 }
+
+// ============================================
+// CHEQUE
+// ============================================
 
 export interface ChequeItem {
   id: string;
@@ -131,6 +196,10 @@ export interface ChequeItem {
   rejectionReason?: string;
 }
 
+// ============================================
+// AUDIT LOGS
+// ============================================
+
 export interface AuditLog {
   id: string;
   timestamp: string;
@@ -142,6 +211,10 @@ export interface AuditLog {
   newValue: string;
   status: 'Success' | 'Failed';
 }
+
+// ============================================
+// SYSTEM USERS
+// ============================================
 
 export interface SysUser {
   id: string;
@@ -155,6 +228,10 @@ export interface SysUser {
   permissions: string[];
 }
 
+// ============================================
+// DATABASE HEALTH
+// ============================================
+
 export interface DbHealthMetric {
   status: 'Healthy' | 'Degraded' | 'Critical';
   cpuUsage: number;
@@ -166,6 +243,10 @@ export interface DbHealthMetric {
   replicationLagMs: number;
 }
 
+// ============================================
+// BRANCH METRICS
+// ============================================
+
 export interface BranchMetric {
   branchName: string;
   vaultLiquidity: number;
@@ -176,6 +257,10 @@ export interface BranchMetric {
   monthlyRevenue: number;
 }
 
+// ============================================
+// DATABASE BACKUP
+// ============================================
+
 export interface BackupRecord {
   id: string;
   filename: string;
@@ -184,6 +269,10 @@ export interface BackupRecord {
   type: 'Automated' | 'Manual' | 'Snapshot';
   status: 'Completed' | 'In Progress' | 'Restored';
 }
+
+// ============================================
+// SYSTEM NOTIFICATIONS
+// ============================================
 
 export interface SystemNotification {
   id: string;
@@ -194,6 +283,10 @@ export interface SystemNotification {
   read: boolean;
   category: string;
 }
+
+// ============================================
+// TOAST MESSAGES
+// ============================================
 
 export interface ToastMessage {
   id: string;
