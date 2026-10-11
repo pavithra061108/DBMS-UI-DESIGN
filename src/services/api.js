@@ -2,12 +2,12 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'http://localhost:5000/api', // Points to your Node.js backend
+    // Replace 'localhost' with your environment variable
+    bbaseURL: 'https://dbms-ui-design.onrender.com/api',
     headers: {
         'Content-Type': 'application/json',
     },
 });
-
 // Automatically attach JWT token if it exists in localStorage
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
