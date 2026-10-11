@@ -18,8 +18,10 @@ import API from '../../services/api';
 
 interface LoginViewProps {
   onLoginSuccess: (userData: any, role: UserRole) => void;
-  onNavigateRegister: () => void;
+  onNavigateRegister: (role: UserRole) => void;
   onNavigateLanding: () => void;
+  initialRole?: UserRole;
+  prefilledEmail?: string;
 }
 
 // Ensure this line has "export const LoginView"
@@ -27,10 +29,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
   onLoginSuccess,
   onNavigateRegister,
   onNavigateLanding,
+  initialRole = 'customer',
+  prefilledEmail = '',
 }) => {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('customer');
+  const [selectedRole, setSelectedRole] = useState<UserRole>(initialRole);
 
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(prefilledEmail);
   const [password, setPassword] = useState('');
 
   const [showPassword, setShowPassword] = useState(false);
@@ -43,6 +47,18 @@ export const LoginView: React.FC<LoginViewProps> = ({
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSubmitted, setForgotSubmitted] = useState(false);
+
+  React.useEffect(() => {
+    if (initialRole) {
+      setSelectedRole(initialRole);
+    }
+  }, [initialRole]);
+
+  React.useEffect(() => {
+    if (prefilledEmail) {
+      setUsername(prefilledEmail);
+    }
+  }, [prefilledEmail]);
 
   const rolePresets: Record<UserRole, { label: string; icon: React.ReactNode; desc: string }> = {
     customer: {
@@ -230,18 +246,35 @@ export const LoginView: React.FC<LoginViewProps> = ({
             <button
               type="submit"
               disabled={loggingIn}
-              className="w-full py-3.5 mt-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-70 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 glow-primary"
+              className={`w-full py-3.5 mt-4 text-white rounded-xl text-xs font-bold shadow-lg transition-all flex items-center justify-center gap-2 glow-primary disabled:opacity-70 ${
+                selectedRole === 'admin'
+                  ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/30'
+                  : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'
+              }`}
             >
-              <span>Authenticate & Enter Dashboard</span>
+              <span>{selectedRole === 'admin' ? 'Authenticate & Enter Bank Admin Portal' : 'Authenticate & Enter Customer Portal'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          <div className="mt-6 text-center text-xs text-slate-400 border-t border-slate-800 pt-4">
-            Don't have a registered account yet?{' '}
-            <button onClick={onNavigateRegister} className="text-blue-400 hover:underline font-semibold">
-              Register Here
-            </button>
+          <div className="mt-6 text-center text-xs text-slate-400 border-t border-slate-800 pt-4 flex flex-col items-center gap-2">
+            <div>
+              Don't have a registered account yet?{' '}
+              <button
+                type="button"
+                onClick={() => onNavigateRegister(selectedRole)}
+                className={`font-semibold underline transition-colors ${
+                  selectedRole === 'admin' ? 'text-purple-400 hover:text-purple-300' : 'text-blue-400 hover:text-blue-300'
+                }`}
+              >
+                {selectedRole === 'admin' ? 'Register Bank Admin Account' : 'Open Customer Account'}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              {selectedRole === 'admin'
+                ? '⚡ Clicking above opens the Bank Admin Registration Form.'
+                : '🛡️ Clicking above opens the Customer Registration Form.'}
+            </p>
           </div>
         </div>
       </main>

@@ -53,6 +53,8 @@ export function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [publicPage, setPublicPage] = useState<PublicPage>('landing');
   const [currentRole, setCurrentRole] = useState<UserRole>('customer');
+  const [authRole, setAuthRole] = useState<UserRole>('customer');
+  const [authEmail, setAuthEmail] = useState<string>('');
 
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
@@ -291,8 +293,39 @@ export function App() {
         {publicPage === 'landing' && <LandingView onNavigateLogin={() => setPublicPage('login')} onNavigatePage={setPublicPage} />}
         {publicPage === 'about' && <AboutView onNavigateLogin={() => setPublicPage('login')} onNavigatePage={setPublicPage} />}
         {publicPage === 'contact' && <ContactView onNavigateLogin={() => setPublicPage('login')} onNavigatePage={setPublicPage} />}
-        {publicPage === 'login' && <LoginView onLoginSuccess={handleLoginSuccess} onNavigateRegister={() => setPublicPage('register')} onNavigateLanding={() => setPublicPage('landing')} />}
-        {publicPage === 'register' && <RegisterView onRegisterSuccess={() => {}} onNavigateLogin={() => setPublicPage('login')} onNavigateLanding={() => setPublicPage('landing')} />}
+        {publicPage === 'login' && (
+          <LoginView
+            onLoginSuccess={handleLoginSuccess}
+            onNavigateRegister={(role) => {
+              setAuthRole(role);
+              setPublicPage('register');
+            }}
+            onNavigateLanding={() => setPublicPage('landing')}
+            initialRole={authRole}
+            prefilledEmail={authEmail}
+          />
+        )}
+        {publicPage === 'register' && (
+          <RegisterView
+            onRegisterSuccess={(role, email) => {
+              setAuthRole(role);
+              setAuthEmail(email);
+              setPublicPage('login');
+              showToast(
+                'Registration Successful',
+                `Created ${role === 'admin' ? 'Bank Admin' : 'Customer'} account. Please sign in below.`,
+                'success'
+              );
+            }}
+            onNavigateLogin={(role, email) => {
+              if (role) setAuthRole(role);
+              if (email) setAuthEmail(email);
+              setPublicPage('login');
+            }}
+            onNavigateLanding={() => setPublicPage('landing')}
+            initialRole={authRole}
+          />
+        )}
         <Toast toasts={toasts} onDismiss={removeToast} />
       </div>
     );
