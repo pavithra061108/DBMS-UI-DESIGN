@@ -79,16 +79,24 @@ export const LoginView: React.FC<LoginViewProps> = ({
     try {
       const response = await API.post('/auth/login', { 
         email: username, 
-        password: password 
+        password: password,
+        requiredRole: selectedRole
       });
       
+      const realRole = (response.data.user.role || 'customer').toLowerCase() as UserRole;
+      if (realRole !== selectedRole) {
+        setLoggingIn(false);
+        setErrorMessage(`Access Denied: This account is registered as ${response.data.user.role}. You cannot log in through the ${selectedRole === 'admin' ? 'Bank Admin' : 'Customer'} portal.`);
+        return;
+      }
+
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
       setWelcomeName(response.data.user.name);
       
       setTimeout(() => {
-        onLoginSuccess(response.data.user, selectedRole);
+        onLoginSuccess(response.data.user, realRole);
       }, 1500);
 
     } catch (error: any) {

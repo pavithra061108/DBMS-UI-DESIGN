@@ -57,10 +57,10 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
     const search = searchTerm.toLowerCase();
 
     const matchesSearch =
-      t.senderName.toLowerCase().includes(search) ||
-      t.receiverName.toLowerCase().includes(search) ||
-      t.referenceNumber.toLowerCase().includes(search) ||
-      t.id.toLowerCase().includes(search);
+      (t.senderName || '').toLowerCase().includes(search) ||
+      (t.receiverName || '').toLowerCase().includes(search) ||
+      (t.referenceNumber || '').toLowerCase().includes(search) ||
+      (t.id || '').toLowerCase().includes(search);
 
     const matchesStatus =
       statusFilter === 'All' ||

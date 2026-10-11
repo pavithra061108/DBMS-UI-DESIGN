@@ -28,6 +28,7 @@ interface AccountsViewProps {
     targetAccount?: BankAccount
   ) => void;
   onAccountCreated?: () => void;
+  isAdmin?: boolean;
 }
 
 const money = (amount: number, currency = 'INR') =>
@@ -42,6 +43,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   globalAccountId,
   setGlobalAccountId,
   onAccountCreated,
+  isAdmin = false,
 }) => {
   const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,6 +54,24 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const [newAccountType, setNewAccountType] = useState('Savings');
   const [isCreating, setIsCreating] = useState(false);
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
+  const [adminProcessingId, setAdminProcessingId] = useState<string | null>(null);
+
+  const handleAdminProcessDeactivation = async (acc: BankAccount, approve: boolean) => {
+    try {
+      setAdminProcessingId(acc.id.toString());
+      const newStatus = approve ? 'Deactivated' : 'Active';
+      await API.patch(`/accounts/${acc.id}/status`, { status: newStatus });
+      if (selectedAccount && selectedAccount.id === acc.id) {
+        setSelectedAccount((prev) => prev ? { ...prev, status: newStatus } : null);
+      }
+      if (onAccountCreated) onAccountCreated();
+    } catch (err: any) {
+      console.error('Failed to update account status:', err);
+      alert(err.response?.data?.error || 'Failed to update account status.');
+    } finally {
+      setAdminProcessingId(null);
+    }
+  };
 
   const activeAccounts = accounts.filter(
     (account) => account.status.toLowerCase() === 'active'
@@ -116,7 +136,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     try {
       const res = await API.post('/accounts/create', {
         accountType: newAccountType,
-        initialBalance: 0,
+        initialBalance: 1000,
       });
       setIsModalOpen(false);
       if (res.data && res.data.account && setGlobalAccountId) {
@@ -196,7 +216,28 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 {acc.status}
               </span>
 
-              {acc.status.toLowerCase() === 'active' && (
+              {isAdmin && acc.status.toLowerCase() === 'deactivation requested' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={adminProcessingId === acc.id.toString()}
+                    onClick={() => handleAdminProcessDeactivation(acc, true)}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 text-xs font-bold transition shadow"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Approve Deactivation
+                  </button>
+                  <button
+                    type="button"
+                    disabled={adminProcessingId === acc.id.toString()}
+                    onClick={() => handleAdminProcessDeactivation(acc, false)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 text-xs font-bold transition"
+                  >
+                    <XCircle className="h-3.5 w-3.5" /> Reject Request
+                  </button>
+                </div>
+              )}
+
+              {!isAdmin && acc.status.toLowerCase() === 'active' && (
                 <button
                   type="button"
                   disabled={deactivatingId === acc.id.toString()}
@@ -215,7 +256,11 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               <Clock className="h-5 w-5 shrink-0 text-amber-400" />
               <div>
                 <p className="font-bold">Deactivation Request Under Review</p>
-                <p className="text-amber-300/80 mt-0.5">Your request to deactivate this account has been forwarded to bank administration for approval.</p>
+                <p className="text-amber-300/80 mt-0.5">
+                  {isAdmin
+                    ? 'The customer has submitted a request to deactivate this account. You can approve or reject this request.'
+                    : 'Your request to deactivate this account has been forwarded to bank administration for approval.'}
+                </p>
               </div>
             </div>
           )}
@@ -323,6 +368,65 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         </div>
       </section>
 
+      {/* Admin Review Banner for Deactivation Requests */}
+      {isAdmin && (
+        (() => {
+          const deactivationRequests = accounts.filter(
+            (a) => a.status.toLowerCase() === 'deactivation requested'
+          );
+          if (deactivationRequests.length === 0) return null;
+          return (
+            <section className="rounded-3xl border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-[#1E293B] to-[#1E293B] p-6 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-500/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-400" />
+                  <h2 className="text-lg font-bold text-white">Pending Account Deactivation Requests</h2>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    {deactivationRequests.length} Pending
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">Review requests submitted by customers to deactivate their bank accounts</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {deactivationRequests.map((reqAcc) => (
+                  <div key={reqAcc.id} className="p-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 flex flex-col justify-between gap-3 shadow-md">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-white text-sm">{reqAcc.customerName}</span>
+                        <span className="text-[11px] font-mono text-slate-400">#{reqAcc.accountNumber}</span>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
+                        <span>Type: <strong className="text-white">{reqAcc.type}</strong></span>
+                        <span>Balance: <strong className="text-emerald-400">{money(reqAcc.balance, reqAcc.currency)}</strong></span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
+                      <button
+                        type="button"
+                        disabled={adminProcessingId === reqAcc.id.toString()}
+                        onClick={() => handleAdminProcessDeactivation(reqAcc, true)}
+                        className="flex-1 py-2 px-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Approve Deactivation
+                      </button>
+                      <button
+                        type="button"
+                        disabled={adminProcessingId === reqAcc.id.toString()}
+                        onClick={() => handleAdminProcessDeactivation(reqAcc, false)}
+                        className="flex-1 py-2 px-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-700"
+                      >
+                        <XCircle className="w-3.5 h-3.5" /> Reject Request
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })()
+      )}
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredAccounts.map((acc) => (
           <div
@@ -357,7 +461,36 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 <p className="mt-0.5 text-2xl font-black text-emerald-400">{money(acc.balance, acc.currency)}</p>
               </div>
 
-              {acc.status.toLowerCase() === 'active' && (
+              {/* If Admin: show Approve/Reject buttons if deactivation is requested */}
+              {isAdmin && acc.status.toLowerCase() === 'deactivation requested' && (
+                <div className="mb-4 space-y-2">
+                  <div className="py-1 px-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[11px] font-medium flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                    <span>Customer requested deactivation</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={adminProcessingId === acc.id.toString()}
+                      onClick={() => handleAdminProcessDeactivation(acc, true)}
+                      className="w-1/2 py-2 px-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition flex items-center justify-center gap-1 shadow"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                    </button>
+                    <button
+                      type="button"
+                      disabled={adminProcessingId === acc.id.toString()}
+                      onClick={() => handleAdminProcessDeactivation(acc, false)}
+                      className="w-1/2 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 flex items-center justify-center gap-1"
+                    >
+                      <XCircle className="w-3.5 h-3.5" /> Reject
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* If Customer: show Request Deactivation button or pending badge */}
+              {!isAdmin && acc.status.toLowerCase() === 'active' && (
                 <button
                   type="button"
                   disabled={deactivatingId === acc.id.toString()}
@@ -368,7 +501,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                   {deactivatingId === acc.id.toString() ? 'Submitting...' : 'Request Deactivation'}
                 </button>
               )}
-              {acc.status.toLowerCase() === 'deactivation requested' && (
+              {!isAdmin && acc.status.toLowerCase() === 'deactivation requested' && (
                 <div className="mb-4 py-2 px-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-medium flex items-center justify-center gap-1.5">
                   <Clock className="h-3.5 w-3.5 shrink-0" />
                   <span>Deactivation Pending Admin Review</span>
@@ -398,31 +531,47 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl border border-slate-700 bg-[#1E293B] p-6 shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-4">Open New Account</h2>
-            <form onSubmit={handleCreateAccount} className="space-y-5">
+            <h2 className="text-xl font-bold text-white mb-2">Open New Account</h2>
+            <p className="text-xs text-slate-400 mb-4">Choose the type of bank account to open. A standard minimum opening balance of ₹1,000 will be allocated.</p>
+            <form onSubmit={handleCreateAccount} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setNewAccountType('Savings')}
-                  className={`py-3 px-4 rounded-xl border text-sm font-bold ${newAccountType === 'Savings' ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400'}`}
+                  className={`py-3 px-4 rounded-xl border text-sm font-bold transition ${newAccountType === 'Savings' ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'}`}
                 >
-                  Savings
+                  Savings Account
                 </button>
                 <button
                   type="button"
                   onClick={() => setNewAccountType('Checking')}
-                  className={`py-3 px-4 rounded-xl border text-sm font-bold ${newAccountType === 'Checking' ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400'}`}
+                  className={`py-3 px-4 rounded-xl border text-sm font-bold transition ${newAccountType === 'Checking' ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'}`}
                 >
-                  Checking
+                  Checking Account
                 </button>
               </div>
-              <button
-                type="submit"
-                disabled={isCreating}
-                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition"
-              >
-                {isCreating ? 'Creating...' : 'Confirm & Open Account'}
-              </button>
+
+              <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-700/70 text-xs">
+                <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Required Minimum Balance</span>
+                <span className="text-emerald-400 font-black text-base mt-0.5 block">₹1,000.00 INR</span>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-1/2 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold hover:bg-slate-700 text-xs transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="w-1/2 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg shadow-blue-600/20"
+                >
+                  {isCreating ? 'Opening Account...' : 'Confirm & Open'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

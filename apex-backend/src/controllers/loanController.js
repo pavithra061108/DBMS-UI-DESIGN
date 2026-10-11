@@ -42,13 +42,12 @@ exports.getLoans = async (req, res) => {
     try {
         let query = `
             SELECT 
-                l.LoanID, u.Name AS "customerName", l.CustomerID AS "customerId",
+                l.LoanID, COALESCE(u.Name, 'Bank Customer') AS "customerName", l.CustomerID AS "customerId",
                 l.LoanType, l.PrincipalAmount AS amount, l.InterestRate AS "interestRate",
                 l.TenureMonths AS "termMonths", l.LoanStatus AS status,
                 TO_CHAR(l.DisbursedDate, 'YYYY-MM-DD') AS "appliedDate"
             FROM Loan l
-            JOIN Customer c ON l.CustomerID = c.UserID
-            JOIN "User" u ON c.UserID = u.UserID
+            LEFT JOIN "User" u ON l.CustomerID = u.UserID
         `;
         let values = [];
 
@@ -69,8 +68,9 @@ exports.getLoans = async (req, res) => {
             const emi = (p * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 
             let displayStatus = 'Pending';
-            if (row.status === 'Approved' || row.status === 'Accepted') displayStatus = 'Approved';
-            else if (row.status === 'Rejected') displayStatus = 'Rejected';
+            const rawStatus = (row.status || '').toLowerCase();
+            if (rawStatus === 'approved' || rawStatus === 'accepted') displayStatus = 'Approved';
+            else if (rawStatus === 'rejected') displayStatus = 'Rejected';
 
             return {
                 id: `LOAN-${row.loanid}`,
@@ -100,8 +100,8 @@ exports.updateLoanStatus = async (req, res) => {
     const { status } = req.body; 
     
     try {
-        const loanId = id.replace('LOAN-', '');
-        const dbStatus = status === 'Approved' ? 'Approved' : 'Rejected';
+        const loanId = id.toString().replace(/[^0-9]/g, '');
+        const dbStatus = String(status).toLowerCase() === 'approved' ? 'Approved' : 'Rejected';
         
         await pool.query(
             'UPDATE Loan SET LoanStatus = $1 WHERE LoanID = $2',

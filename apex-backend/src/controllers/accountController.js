@@ -20,14 +20,15 @@ exports.createAccount = async (req, res) => {
             targetBranchId = branchCheck.rows[0].branchid;
         }
 
-        // 2. Generate unique Account Number and Insert Account
+        // 2. Generate unique Account Number and Insert Account with Minimum Balance (Rs 1,000)
         const accNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
         const validAccountType = accountType === 'Checking' ? 'Checking' : (accountType || 'Savings');
+        const startingBalance = (initialBalance !== undefined && Number(initialBalance) > 0) ? Number(initialBalance) : 1000;
 
         const result = await pool.query(
             `INSERT INTO Account (AccountNumber, CustomerID, BranchID, AccountType, Balance, Status) 
              VALUES ($1, $2, $3, $4, $5, 'Active') RETURNING *`,
-            [accNumber, userId, targetBranchId, validAccountType, initialBalance !== undefined ? initialBalance : 0]
+            [accNumber, userId, targetBranchId, validAccountType, startingBalance]
         );
         
         res.status(201).json({ message: 'Account created successfully', account: result.rows[0] });
@@ -48,19 +49,18 @@ exports.getAccounts = async (req, res) => {
                 a.AccountID AS id,
                 a.AccountNumber AS "accountNumber",
                 'IN89APEX' || a.AccountNumber AS iban,
-                u.Name AS "customerName",
-                u.UserID AS "userId",
+                COALESCE(u.Name, 'Customer #' || a.CustomerID) AS "customerName",
+                a.CustomerID AS "userId",
                 a.AccountType AS type,
                 a.Balance AS balance,
                 'INR' AS currency,
                 CASE WHEN a.AccountType = 'Savings' THEN 4.25 ELSE 1.10 END AS "interestRate",
                 a.Status AS status,
-                b.BranchName AS branch,
+                COALESCE(b.BranchName, 'Apex Main Branch') AS branch,
                 TO_CHAR(a.OpenedDate, 'YYYY-MM-DD') AS "openedDate"
             FROM Account a
-            JOIN Customer c ON a.CustomerID = c.UserID
-            JOIN "User" u ON c.UserID = u.UserID
-            JOIN Branch b ON a.BranchID = b.BranchID
+            LEFT JOIN "User" u ON a.CustomerID = u.UserID
+            LEFT JOIN Branch b ON a.BranchID = b.BranchID
         `;
 
         let values = [];

@@ -21,7 +21,6 @@ interface HeaderProps {
   ) => void;
   onSelectTab: (tab: any) => void;
   onLogout: () => void;
-  onChangeRole?: (role: UserRole) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,7 +31,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNotifications,
   onSelectTab,
   onLogout,
-  onChangeRole,
 }) => {
   const [search, setSearch] = useState('');
   const [profileOpen, setProfileOpen] = useState(false);
@@ -176,36 +174,6 @@ export const Header: React.FC<HeaderProps> = ({
                   {currentUser.status}
                 </span>
               </div>
-
-              {/* Role Quick Switcher */}
-              {onChangeRole && (
-                <div className="p-2 border-b border-slate-800">
-                  <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1.5 px-1">
-                    Switch Role
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-1 text-[10px]">
-                    {(['customer', 'admin'] as UserRole[]).map(
-                      (role) => (
-                        <button
-                          key={role}
-                          onClick={() => {
-                            onChangeRole(role);
-                            setProfileOpen(false);
-                          }}
-                          className={`px-2 py-1.5 rounded-lg font-medium text-left capitalize transition ${
-                            currentRole === role
-                              ? 'bg-blue-600 text-white font-bold'
-                              : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800'
-                          }`}
-                        >
-                          {role}
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* Profile Actions */}
               <div className="py-1">

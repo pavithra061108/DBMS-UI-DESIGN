@@ -167,7 +167,7 @@ export function App() {
     if (isAuthenticated) {
       fetchData();
     }
-  }, [isAuthenticated, currentUser, currentRole]);
+  }, [isAuthenticated, currentUser, currentRole, currentTab]);
 
   // LIVE LOGIN
   const handleLoginSuccess = (userData: any, role: UserRole) => {
@@ -215,8 +215,6 @@ export function App() {
     setGlobalAccountId('');
     showToast('Logged Out', 'You have been securely signed out.', 'info');
   };
-
-  const handleSwitchRole = () => showToast('Role Switching Disabled', 'Please log out and sign in with the intended role.', 'info');
 
   const handleActionSubmit = async (data: { type: 'deposit' | 'withdraw' | 'transfer'; accountId: string; amount: number; receiverName?: string; receiverIban?: string; }) => {
     try {
@@ -306,7 +304,7 @@ export function App() {
     <div className="flex h-screen bg-[#0B0B0B] text-white font-sans overflow-hidden">
       <Sidebar currentRole={currentRole} currentTab={currentTab as ActiveTab} onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} onLogout={handleLogout} />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <Header currentRole={currentRole} currentUser={currentUser} unreadNotifCount={notifications.filter((n) => !n.read).length} activeTabLabel={currentTab.replace(/_/g, ' ')} onOpenNotifications={() => setIsNotifDrawerOpen(true)} onOpenQuickAction={(action) => setActionModal({ isOpen: true, type: action })} onSelectTab={setCurrentTab} onLogout={handleLogout} onChangeRole={handleSwitchRole} />
+        <Header currentRole={currentRole} currentUser={currentUser} unreadNotifCount={notifications.filter((n) => !n.read).length} activeTabLabel={currentTab.replace(/_/g, ' ')} onOpenNotifications={() => setIsNotifDrawerOpen(true)} onOpenQuickAction={(action) => setActionModal({ isOpen: true, type: action })} onSelectTab={setCurrentTab} onLogout={handleLogout} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
           {!isTabAllowed(currentRole, currentTab) ? (
             <AccessDeniedView currentRole={currentRole} attemptedTab={currentTab} onGoDashboard={() => { setCurrentTab(currentRole === 'admin' ? 'admin_dashboard' : 'customer_dashboard'); }} />
@@ -314,7 +312,7 @@ export function App() {
             <>
               {(currentTab === 'dashboard' || currentTab === 'customer_dashboard') && currentRole === 'customer' && <DashboardView currentUser={currentUser} accounts={accounts} transactions={transactions} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} onOpenActionModal={(action) => setActionModal({ isOpen: true, type: action })} onSelectTab={setCurrentTab} />}
               
-              {(currentTab === 'my_accounts' || currentTab === 'accounts') && <AccountsView accounts={accounts} transactions={transactions} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} onAccountCreated={fetchData} onOpenActionModal={(action, acc) => setActionModal({ isOpen: true, type: action, targetAccount: acc }) } />}
+              {(currentTab === 'my_accounts' || currentTab === 'accounts') && <AccountsView accounts={accounts} transactions={transactions} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} onAccountCreated={fetchData} onOpenActionModal={(action, acc) => setActionModal({ isOpen: true, type: action, targetAccount: acc }) } isAdmin={false} />}
               
               {currentTab === 'balance_overview' && <BalanceOverviewView accounts={accounts} currentUser={currentUser} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} />}
               
@@ -324,13 +322,13 @@ export function App() {
               
               {currentTab === 'account_statement' && <AccountStatementView accounts={accounts} transactions={transactions} currentUser={currentUser} onShowToast={showToast} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} />}
               
-              {currentTab === 'loan_status' && <LoanStatusView loans={loans} currentUser={currentUser} onShowToast={showToast} onApplyLoan={handleApplyLoan} />}
+              {currentTab === 'loan_status' && <LoanStatusView loans={loans} currentUser={currentUser} onShowToast={showToast} onApplyLoan={handleApplyLoan} onRefreshLoans={fetchData} />}
               {currentTab === 'profile' && <ProfileView currentUser={currentUser} onUpdateProfile={handleUpdateCustomer} onShowToast={showToast} />}
               {currentTab === 'settings' && <SettingsView currentUser={currentUser} onShowToast={showToast} />}
               
               {currentRole === 'admin' && currentTab === 'admin_dashboard' && <ApexAdminDashboard customers={customers} accounts={accounts} transactions={transactions} loans={loans} onShowToast={showToast} onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)} />}
               {currentRole === 'admin' && currentTab === 'customer_management' && <CustomersView customers={customers} accounts={accounts} onRefreshAccounts={fetchData} onUpdateCustomer={handleUpdateCustomer} onShowToast={showToast} />}
-              {currentRole === 'admin' && currentTab === 'account_management' && <AccountsView accounts={accounts} transactions={transactions} onAccountCreated={fetchData} onOpenActionModal={(action, account) => setActionModal({ isOpen: true, type: action, targetAccount: account }) } />}
+              {currentRole === 'admin' && currentTab === 'account_management' && <AccountsView accounts={accounts} transactions={transactions} onAccountCreated={fetchData} onOpenActionModal={(action, account) => setActionModal({ isOpen: true, type: action, targetAccount: account }) } isAdmin={true} />}
               {currentRole === 'admin' && currentTab === 'transaction_management' && <TransactionsView transactions={transactions} onShowToast={showToast} />}
               {currentRole === 'admin' && currentTab === 'loan_management' && <LoanManagementView loans={loans} onShowToast={showToast} onUpdateLoanStatus={handleUpdateLoanStatus} />}
               {currentRole === 'admin' && currentTab === 'branch_management' && <BranchManagementView />}

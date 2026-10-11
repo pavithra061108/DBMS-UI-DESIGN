@@ -622,9 +622,9 @@ export const AccountStatementView: React.FC<{
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 relative overflow-hidden">
           {isLoading && <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px] flex items-center justify-center"><Loader2 className="w-5 h-5 text-blue-500 animate-spin" /></div>}
-          <p className="text-xs text-slate-400 font-semibold">Opening Balance</p>
+          <p className="text-xs text-slate-400 font-semibold">Minimum Balance</p>
           <p className="text-2xl font-black text-white font-mono mt-1">
-            ₹{statementData.openingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₹1,000.00
           </p>
         </div>
 

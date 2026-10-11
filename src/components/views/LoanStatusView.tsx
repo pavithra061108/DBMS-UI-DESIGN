@@ -8,6 +8,7 @@ import {
   FileText,
   Plus,
   X,
+  RefreshCw,
 } from 'lucide-react';
 import { Customer, LoanApplication } from '../../types/bank';
 
@@ -22,6 +23,7 @@ interface LoanStatusViewProps {
     type: ToastType
   ) => void;
   onApplyLoan: (loanData: Partial<LoanApplication>) => void;
+  onRefreshLoans?: () => void;
 }
 
 const money = (value: number) =>
@@ -50,6 +52,7 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
   currentUser,
   onShowToast,
   onApplyLoan,
+  onRefreshLoans,
 }) => {
   const [showApplyForm, setShowApplyForm] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<LoanApplication | null>(null);
@@ -76,7 +79,7 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
 
   const pendingCount = myLoans.filter((loan) => {
     const status = String(loan.status).toLowerCase();
-    return status.includes('pending') || status.includes('review');
+    return status.includes('pending') || status.includes('review') || status.includes('applied');
   }).length;
 
   const handleApply = (event: React.FormEvent<HTMLFormElement>) => {
@@ -138,14 +141,26 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
             Track your loan applications, approval decisions, and repayment details.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowApplyForm(true)}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-600"
-        >
-          <Plus className="h-4 w-4" />
-          Apply for a Loan
-        </button>
+        <div className="flex items-center gap-3">
+          {onRefreshLoans && (
+            <button
+              type="button"
+              onClick={onRefreshLoans}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-sm font-bold text-slate-200 transition hover:bg-slate-700"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh Status
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowApplyForm(true)}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-600"
+          >
+            <Plus className="h-4 w-4" />
+            Apply for a Loan
+          </button>
+        </div>
       </section>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">

@@ -54,7 +54,7 @@ exports.registerCustomer = async (req, res) => {
 
 // Login an existing user
 exports.loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, requiredRole } = req.body;
 
     try {
         // 1. Check if user exists
@@ -71,7 +71,16 @@ exports.loginUser = async (req, res) => {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // 3. Generate a JSON Web Token (JWT)
+        // 3. Enforce strict role separation between Customer and Admin
+        if (requiredRole && user.role.toLowerCase() !== requiredRole.toLowerCase()) {
+            const roleName = user.role.toLowerCase() === 'admin' ? 'Bank Administrator' : 'Customer';
+            const portalName = requiredRole.toLowerCase() === 'admin' ? 'Bank Admin Portal' : 'Customer Portal';
+            return res.status(403).json({
+                error: `Access Denied: This account is registered as a ${roleName}. You cannot log in through the ${portalName}.`
+            });
+        }
+
+        // 4. Generate a JSON Web Token (JWT)
         const token = jwt.sign(
             { userId: user.userid, role: user.role, email: user.email },
             process.env.JWT_SECRET || 'fallback_secret_key',

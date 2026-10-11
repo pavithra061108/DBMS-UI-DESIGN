@@ -107,15 +107,14 @@ exports.getTransactions = async (req, res) => {
                 TO_CHAR(t.TransactionDate, 'HH12:MI:SS AM') AS time,
                 CASE WHEN t.TransactionType = 'TransferOut' THEN 'Transfer' ELSE t.TransactionType END AS type,
                 'Completed' AS status,
-                b.BranchName AS branch,
+                COALESCE(b.BranchName, 'Apex Main Branch') AS branch,
                 t.TransactionType AS category,
                 0 AS fee,
                 t.Description AS description
             FROM Transaction t
             JOIN Account a ON t.AccountID = a.AccountID
-            JOIN Customer c ON a.CustomerID = c.UserID
-            JOIN "User" u ON c.UserID = u.UserID
-            JOIN Branch b ON a.BranchID = b.BranchID
+            LEFT JOIN "User" u ON a.CustomerID = u.UserID
+            LEFT JOIN Branch b ON a.BranchID = b.BranchID
         `;
         let values = [];
         if (role && role.toLowerCase() === 'customer') {
