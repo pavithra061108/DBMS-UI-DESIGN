@@ -50,6 +50,7 @@ interface SettingsViewProps {
     type?: 'success' | 'warning' | 'error' | 'info',
     category?: string
   ) => void;
+  onThemeChange?: (theme: ThemePreference) => void;
 }
 
 type ThemePreference = 'dark' | 'midnight' | 'emerald';
@@ -117,6 +118,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUpdateUser,
   onLogout,
   addNotification,
+  onThemeChange,
 }) => {
   const isAdmin = currentRole
     ? currentRole === 'admin'
@@ -149,11 +151,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     try {
       const stored = localStorage.getItem(settingsKey(String(currentUser.id), isAdmin));
       if (stored) loaded = { ...DEFAULT_PREFERENCES, ...JSON.parse(stored) };
+      const globalTheme = localStorage.getItem('apex_theme') as ThemePreference;
+      if (globalTheme) loaded.theme = globalTheme;
     } catch {
       loaded = DEFAULT_PREFERENCES;
     }
     setPreferences(loaded);
     setSavedPreferences(loaded);
+    document.documentElement.setAttribute('data-theme', loaded.theme);
+    document.body.setAttribute('data-theme', loaded.theme);
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -175,10 +181,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       }
       if (key === 'theme') {
         localStorage.setItem('apex_theme', String(value));
-        document.documentElement.dataset.theme = String(value);
+        document.documentElement.setAttribute('data-theme', String(value));
+        document.body.setAttribute('data-theme', String(value));
+        if (onThemeChange) {
+          onThemeChange(value as ThemePreference);
+        }
       }
       return next;
     });
+  };
+
+  const handleThemeSelect = (themeType: ThemePreference) => {
+    updatePreference('theme', themeType);
+    document.documentElement.setAttribute('data-theme', themeType);
+    document.body.setAttribute('data-theme', themeType);
+    localStorage.setItem('apex_theme', themeType);
+    if (onThemeChange) {
+      onThemeChange(themeType);
+    }
+    onShowToast(
+      'Theme Activated',
+      `Switched interface to ${themeType === 'emerald' ? 'Emerald Enterprise' : themeType === 'midnight' ? 'Midnight Navy' : 'Dark Obsidian'} mode.`,
+      'success'
+    );
   };
 
   const savePreferences = () => {
@@ -1109,23 +1134,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <ThemeOption
                   title="Dark Obsidian"
                   description="Classic deep black (#0B0B0B) banking terminal."
-                  icon={<Moon className="h-5 w-5" />}
+                  icon={<Moon className="h-5 w-5 text-slate-300" />}
                   selected={preferences.theme === 'dark'}
-                  onClick={() => updatePreference('theme', 'dark')}
+                  themeType="dark"
+                  onClick={() => handleThemeSelect('dark')}
                 />
                 <ThemeOption
                   title="Midnight Navy"
                   description="High-tech dark oceanic blue aesthetic."
-                  icon={<Monitor className="h-5 w-5" />}
+                  icon={<Monitor className="h-5 w-5 text-sky-400" />}
                   selected={preferences.theme === 'midnight'}
-                  onClick={() => updatePreference('theme', 'midnight')}
+                  themeType="midnight"
+                  onClick={() => handleThemeSelect('midnight')}
                 />
                 <ThemeOption
                   title="Emerald Enterprise"
                   description="Wealth management deep forest green tone."
-                  icon={<Sun className="h-5 w-5" />}
+                  icon={<Sun className="h-5 w-5 text-emerald-400" />}
                   selected={preferences.theme === 'emerald'}
-                  onClick={() => updatePreference('theme', 'emerald')}
+                  themeType="emerald"
+                  onClick={() => handleThemeSelect('emerald')}
                 />
               </div>
 
@@ -1242,25 +1270,82 @@ const ThemeOption: React.FC<{
   description: string;
   icon: React.ReactNode;
   selected: boolean;
+  themeType: ThemePreference;
   onClick: () => void;
-}> = ({ title, description, icon, selected, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className={`rounded-xl border p-4 text-left transition ${
-      selected
-        ? 'border-blue-500/60 bg-blue-500/10 shadow-md shadow-blue-500/20 glow-primary'
-        : 'border-slate-800 bg-[#0D0D0D] hover:border-slate-700'
-    }`}
-  >
-    <div className="flex items-center justify-between">
-      <span className={selected ? 'text-blue-400' : 'text-slate-400'}>{icon}</span>
-      {selected && <Check className="h-4 w-4 text-blue-400" />}
-    </div>
-    <p className="mt-3 text-xs font-bold text-white">{title}</p>
-    <p className="mt-0.5 text-[11px] text-slate-500 leading-snug">{description}</p>
-  </button>
-);
+}> = ({ title, description, icon, selected, themeType, onClick }) => {
+  const previewColors = {
+    dark: {
+      bg: 'bg-[#0B0B0B]',
+      card: 'bg-[#151515]',
+      border: 'border-slate-800',
+      activeBorder: 'border-blue-500 ring-2 ring-blue-500/40 bg-blue-500/10 shadow-lg shadow-blue-500/20',
+      badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+      accentDot: 'bg-blue-500',
+    },
+    midnight: {
+      bg: 'bg-[#050c18]',
+      card: 'bg-[#0a172e]',
+      border: 'border-sky-900/50',
+      activeBorder: 'border-sky-500 ring-2 ring-sky-500/40 bg-sky-500/15 shadow-lg shadow-sky-500/20',
+      badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+      accentDot: 'bg-sky-400',
+    },
+    emerald: {
+      bg: 'bg-[#03180f]',
+      card: 'bg-[#07291a]',
+      border: 'border-emerald-900/50',
+      activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/40 bg-emerald-500/20 shadow-lg shadow-emerald-500/25',
+      badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      accentDot: 'bg-emerald-400',
+    },
+  }[themeType];
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border p-4 text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+        selected
+          ? previewColors.activeBorder
+          : `${previewColors.border} ${previewColors.card} hover:border-slate-600`
+      }`}
+    >
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="p-2 rounded-lg bg-black/40 border border-white/10">
+              {icon}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${previewColors.badge}`}>
+              {themeType.toUpperCase()}
+            </span>
+          </div>
+          {selected && (
+            <span className="flex items-center gap-1 text-[11px] font-bold text-white bg-black/60 px-2 py-1 rounded-full border border-white/20">
+              <Check className="h-3.5 w-3.5 text-emerald-400" /> Active
+            </span>
+          )}
+        </div>
+
+        {/* Visual Mini Palette Swatch */}
+        <div className="flex items-center gap-1.5 mb-3 p-1.5 rounded-lg bg-black/50 border border-white/5">
+          <div className={`w-5 h-5 rounded ${previewColors.bg} border border-white/10`} title="Background" />
+          <div className={`w-5 h-5 rounded ${previewColors.card} border border-white/10`} title="Cards" />
+          <div className={`w-5 h-5 rounded ${previewColors.accentDot}`} title="Accent" />
+          <span className="text-[10px] text-slate-400 ml-1">Live Palette</span>
+        </div>
+
+        <p className="text-sm font-bold text-white">{title}</p>
+        <p className="mt-1 text-xs text-slate-400 leading-snug">{description}</p>
+      </div>
+
+      <div className="mt-4 pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-semibold text-slate-300">
+        <span>{selected ? 'Theme Currently Active' : 'Click to Apply Theme'}</span>
+        <span className={`w-2 h-2 rounded-full ${selected ? previewColors.accentDot : 'bg-slate-600'}`} />
+      </div>
+    </button>
+  );
+};
 
 const PasswordInput: React.FC<{
   label: string;

@@ -87,3 +87,146 @@
 .animate-pulse-subtle {
   animation: pulse-subtle 3s infinite ease-in-out;
 }
+
+/* ===================================================
+   DYNAMIC THEME ENGINE (Emerald Enterprise & Midnight Navy)
+   =================================================== */
+
+/* 1. EMERALD ENTERPRISE THEME */
+html[data-theme="emerald"],
+body[data-theme="emerald"],
+[data-theme="emerald"] {
+  background-color: #03180f !important;
+}
+
+[data-theme="emerald"] body,
+[data-theme="emerald"] #root,
+[data-theme="emerald"] .bg-\[\#0B0B0B\],
+[data-theme="emerald"] [class*="bg-[#0B0B0B]"] {
+  background-color: #03180f !important;
+}
+
+[data-theme="emerald"] .bg-\[\#151515\],
+[data-theme="emerald"] [class*="bg-[#151515]"],
+[data-theme="emerald"] aside#sidebar-navigation,
+[data-theme="emerald"] .glass-panel,
+[data-theme="emerald"] .glass-card {
+  background-color: #07291a !important;
+}
+
+[data-theme="emerald"] header#main-app-header,
+[data-theme="emerald"] header,
+[data-theme="emerald"] [class*="bg-[#0B0B0B]/90"] {
+  background-color: rgba(3, 24, 15, 0.95) !important;
+}
+
+[data-theme="emerald"] .bg-\[\#0D0D0D\],
+[data-theme="emerald"] [class*="bg-[#0D0D0D]"],
+[data-theme="emerald"] .bg-slate-900,
+[data-theme="emerald"] [class*="bg-slate-900"] {
+  background-color: #051e13 !important;
+}
+
+[data-theme="emerald"] .border-slate-800,
+[data-theme="emerald"] [class*="border-slate-800"] {
+  border-color: rgba(16, 185, 129, 0.22) !important;
+}
+
+[data-theme="emerald"] .border-slate-700,
+[data-theme="emerald"] [class*="border-slate-700"] {
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+[data-theme="emerald"] .bg-blue-600,
+[data-theme="emerald"] [class*="bg-blue-600"] {
+  background-color: #059669 !important;
+}
+
+[data-theme="emerald"] .hover\:bg-blue-500:hover,
+[data-theme="emerald"] [class*="hover:bg-blue-500"]:hover {
+  background-color: #10b981 !important;
+}
+
+[data-theme="emerald"] .text-blue-400,
+[data-theme="emerald"] .text-blue-500,
+[data-theme="emerald"] .text-cyan-400 {
+  color: #34d399 !important;
+}
+
+[data-theme="emerald"] .glow-primary {
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.45) !important;
+}
+
+[data-theme="emerald"] .border-blue-500,
+[data-theme="emerald"] [class*="border-blue-500"] {
+  border-color: rgba(52, 211, 153, 0.5) !important;
+}
+
+/* 2. MIDNIGHT NAVY THEME */
+html[data-theme="midnight"],
+body[data-theme="midnight"],
+[data-theme="midnight"] {
+  background-color: #050c18 !important;
+}
+
+[data-theme="midnight"] body,
+[data-theme="midnight"] #root,
+[data-theme="midnight"] .bg-\[\#0B0B0B\],
+[data-theme="midnight"] [class*="bg-[#0B0B0B]"] {
+  background-color: #050c18 !important;
+}
+
+[data-theme="midnight"] .bg-\[\#151515\],
+[data-theme="midnight"] [class*="bg-[#151515]"],
+[data-theme="midnight"] aside#sidebar-navigation,
+[data-theme="midnight"] .glass-panel,
+[data-theme="midnight"] .glass-card {
+  background-color: #0a172e !important;
+}
+
+[data-theme="midnight"] header#main-app-header,
+[data-theme="midnight"] header,
+[data-theme="midnight"] [class*="bg-[#0B0B0B]/90"] {
+  background-color: rgba(5, 12, 24, 0.95) !important;
+}
+
+[data-theme="midnight"] .bg-\[\#0D0D0D\],
+[data-theme="midnight"] [class*="bg-[#0D0D0D]"],
+[data-theme="midnight"] .bg-slate-900,
+[data-theme="midnight"] [class*="bg-slate-900"] {
+  background-color: #071122 !important;
+}
+
+[data-theme="midnight"] .border-slate-800,
+[data-theme="midnight"] [class*="border-slate-800"] {
+  border-color: rgba(56, 189, 248, 0.22) !important;
+}
+
+[data-theme="midnight"] .border-slate-700,
+[data-theme="midnight"] [class*="border-slate-700"] {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+
+[data-theme="midnight"] .bg-blue-600,
+[data-theme="midnight"] [class*="bg-blue-600"] {
+  background-color: #0284c7 !important;
+}
+
+[data-theme="midnight"] .hover\:bg-blue-500:hover,
+[data-theme="midnight"] [class*="hover:bg-blue-500"]:hover {
+  background-color: #38bdf8 !important;
+}
+
+[data-theme="midnight"] .text-blue-400,
+[data-theme="midnight"] .text-blue-500 {
+  color: #38bdf8 !important;
+}
+
+[data-theme="midnight"] .glow-primary {
+  box-shadow: 0 0 25px rgba(14, 165, 233, 0.45) !important;
+}
+
+[data-theme="midnight"] .border-blue-500,
+[data-theme="midnight"] [class*="border-blue-500"] {
+  border-color: rgba(56, 189, 248, 0.5) !important;
+}
