@@ -29,6 +29,7 @@ import {
   ArrowRight,
   Landmark,
   FileSpreadsheet,
+  Sparkles,
 } from 'lucide-react';
 import { Customer, NavigationTab, UserRole } from '../../types/bank';
 import API from '../../services/api';
@@ -53,7 +54,7 @@ interface SettingsViewProps {
   onThemeChange?: (theme: ThemePreference) => void;
 }
 
-type ThemePreference = 'dark' | 'midnight' | 'emerald';
+type ThemePreference = 'dark' | 'soft' | 'shiny';
 type SettingsTab =
   | 'overview'
   | 'general'
@@ -199,9 +200,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     if (onThemeChange) {
       onThemeChange(themeType);
     }
+    const themeLabels: Record<ThemePreference, string> = {
+      dark: 'Dark Cobalt (Black & Blue)',
+      soft: 'Soft Warm Elegance (Peach & Beige)',
+      shiny: 'Shiny Platinum Glass',
+    };
     onShowToast(
       'Theme Activated',
-      `Switched interface to ${themeType === 'emerald' ? 'Emerald Enterprise' : themeType === 'midnight' ? 'Midnight Navy' : 'Dark Obsidian'} mode.`,
+      `Switched interface to ${themeLabels[themeType]} mode.`,
       'success'
     );
   };
@@ -1132,28 +1138,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             >
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <ThemeOption
-                  title="Dark Obsidian"
-                  description="Classic deep black (#0B0B0B) banking terminal."
-                  icon={<Moon className="h-5 w-5 text-slate-300" />}
+                  title="Dark Cobalt"
+                  description="Sleek black (#0B0B0B) interface with electric blue buttons and cobalt accents."
+                  icon={<Moon className="h-5 w-5 text-blue-400" />}
                   selected={preferences.theme === 'dark'}
                   themeType="dark"
                   onClick={() => handleThemeSelect('dark')}
                 />
                 <ThemeOption
-                  title="Midnight Navy"
-                  description="High-tech dark oceanic blue aesthetic."
-                  icon={<Monitor className="h-5 w-5 text-sky-400" />}
-                  selected={preferences.theme === 'midnight'}
-                  themeType="midnight"
-                  onClick={() => handleThemeSelect('midnight')}
+                  title="Soft Warm Elegance"
+                  description="Soft peach & beige tones with white cards and subtle terracotta buttons."
+                  icon={<Sun className="h-5 w-5 text-amber-500" />}
+                  selected={preferences.theme === 'soft'}
+                  themeType="soft"
+                  onClick={() => handleThemeSelect('soft')}
                 />
                 <ThemeOption
-                  title="Emerald Enterprise"
-                  description="Wealth management deep forest green tone."
-                  icon={<Sun className="h-5 w-5 text-emerald-400" />}
-                  selected={preferences.theme === 'emerald'}
-                  themeType="emerald"
-                  onClick={() => handleThemeSelect('emerald')}
+                  title="Shiny Platinum Glass"
+                  description="High-gloss metallic chrome and specular glass cards with diamond cyan buttons."
+                  icon={<Sparkles className="h-5 w-5 text-cyan-300" />}
+                  selected={preferences.theme === 'shiny'}
+                  themeType="shiny"
+                  onClick={() => handleThemeSelect('shiny')}
                 />
               </div>
 
@@ -1282,21 +1288,21 @@ const ThemeOption: React.FC<{
       badge: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
       accentDot: 'bg-blue-500',
     },
-    midnight: {
-      bg: 'bg-[#050c18]',
-      card: 'bg-[#0a172e]',
-      border: 'border-sky-900/50',
-      activeBorder: 'border-sky-500 ring-2 ring-sky-500/40 bg-sky-500/15 shadow-lg shadow-sky-500/20',
-      badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
-      accentDot: 'bg-sky-400',
+    soft: {
+      bg: 'bg-[#FAF7F2]',
+      card: 'bg-[#FFFFFF]',
+      border: 'border-[#E8DFD8]',
+      activeBorder: 'border-[#E07A5F] ring-2 ring-[#E07A5F]/40 bg-[#E07A5F]/10 shadow-lg shadow-[#E07A5F]/20',
+      badge: 'bg-[#E07A5F]/20 text-[#E07A5F] border-[#E07A5F]/30',
+      accentDot: 'bg-[#E07A5F]',
     },
-    emerald: {
-      bg: 'bg-[#03180f]',
-      card: 'bg-[#07291a]',
-      border: 'border-emerald-900/50',
-      activeBorder: 'border-emerald-500 ring-2 ring-emerald-500/40 bg-emerald-500/20 shadow-lg shadow-emerald-500/25',
-      badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-      accentDot: 'bg-emerald-400',
+    shiny: {
+      bg: 'bg-[#070b12]',
+      card: 'bg-[#172233]',
+      border: 'border-cyan-500/30',
+      activeBorder: 'border-cyan-400 ring-2 ring-cyan-400/50 bg-cyan-500/15 shadow-lg shadow-cyan-400/30',
+      badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      accentDot: 'bg-cyan-400',
     },
   }[themeType];
 

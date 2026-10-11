@@ -349,7 +349,7 @@ export function App() {
   const activeAccountObj = accounts.find((a) => a.id.toString() === globalAccountId) || accounts[0];
 
   return (
-    <div data-theme={theme} className={`flex h-screen text-white font-sans overflow-hidden ${theme === 'emerald' ? 'bg-[#03180f]' : theme === 'midnight' ? 'bg-[#050c18]' : 'bg-[#0B0B0B]'}`}>
+    <div data-theme={theme} className={`flex h-screen font-sans overflow-hidden ${theme === 'soft' ? 'bg-[#FAF7F2] text-[#2D2926]' : theme === 'shiny' ? 'bg-[#070b12] text-white' : 'bg-[#0B0B0B] text-white'}`}>
       <Sidebar currentRole={currentRole} currentTab={currentTab as ActiveTab} onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} onLogout={handleLogout} />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <Header currentRole={currentRole} currentUser={currentUser} unreadNotifCount={notifications.filter((n) => !n.read).length} activeTabLabel={currentTab.replace(/_/g, ' ')} onOpenNotifications={() => setIsNotifDrawerOpen(true)} onOpenQuickAction={(action) => setActionModal({ isOpen: true, type: action })} onSelectTab={setCurrentTab} onLogout={handleLogout} />

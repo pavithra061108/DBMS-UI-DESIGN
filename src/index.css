@@ -89,144 +89,563 @@
 }
 
 /* ===================================================
-   DYNAMIC THEME ENGINE (Emerald Enterprise & Midnight Navy)
+   TRIPLE THEME ENGINE
+   1. Dark Cobalt (Black & Electric Blue)
+   2. Soft Warm Elegance (Peach & Beige with White)
+   3. Shiny Platinum Glass (Glossy Metallic Chrome & Diamond Cyan)
    =================================================== */
 
-/* 1. EMERALD ENTERPRISE THEME */
-html[data-theme="emerald"],
-body[data-theme="emerald"],
-[data-theme="emerald"] {
-  background-color: #03180f !important;
+/* ---------------------------------------------------
+   1. DARK COBALT OBSIDIAN (Default)
+   Sleek black (#0B0B0B) with vibrant electric blue buttons
+   --------------------------------------------------- */
+html[data-theme="dark"],
+body[data-theme="dark"],
+[data-theme="dark"] {
+  background-color: #0B0B0B !important;
+  color: #FFFFFF !important;
 }
 
-[data-theme="emerald"] body,
-[data-theme="emerald"] #root,
-[data-theme="emerald"] .bg-\[\#0B0B0B\],
-[data-theme="emerald"] [class*="bg-[#0B0B0B]"] {
-  background-color: #03180f !important;
+[data-theme="dark"] body,
+[data-theme="dark"] #root,
+[data-theme="dark"] .bg-\[\#0B0B0B\],
+[data-theme="dark"] [class*="bg-[#0B0B0B]"] {
+  background-color: #0B0B0B !important;
 }
 
-[data-theme="emerald"] .bg-\[\#151515\],
-[data-theme="emerald"] [class*="bg-[#151515]"],
-[data-theme="emerald"] aside#sidebar-navigation,
-[data-theme="emerald"] .glass-panel,
-[data-theme="emerald"] .glass-card {
-  background-color: #07291a !important;
+[data-theme="dark"] .bg-\[\#151515\],
+[data-theme="dark"] [class*="bg-[#151515]"],
+[data-theme="dark"] aside#sidebar-navigation,
+[data-theme="dark"] .glass-panel,
+[data-theme="dark"] .glass-card {
+  background-color: #151515 !important;
 }
 
-[data-theme="emerald"] header#main-app-header,
-[data-theme="emerald"] header,
-[data-theme="emerald"] [class*="bg-[#0B0B0B]/90"] {
-  background-color: rgba(3, 24, 15, 0.95) !important;
+[data-theme="dark"] header#main-app-header,
+[data-theme="dark"] header {
+  background-color: rgba(11, 11, 11, 0.92) !important;
 }
 
-[data-theme="emerald"] .bg-\[\#0D0D0D\],
-[data-theme="emerald"] [class*="bg-[#0D0D0D]"],
-[data-theme="emerald"] .bg-slate-900,
-[data-theme="emerald"] [class*="bg-slate-900"] {
-  background-color: #051e13 !important;
+/* Primary Buttons in Dark Cobalt */
+[data-theme="dark"] .bg-blue-600,
+[data-theme="dark"] [class*="bg-blue-600"] {
+  background-color: #2563EB !important;
+  color: #FFFFFF !important;
 }
 
-[data-theme="emerald"] .border-slate-800,
-[data-theme="emerald"] [class*="border-slate-800"] {
-  border-color: rgba(16, 185, 129, 0.22) !important;
+[data-theme="dark"] .hover\:bg-blue-500:hover,
+[data-theme="dark"] [class*="hover:bg-blue-500"]:hover {
+  background-color: #3B82F6 !important;
 }
 
-[data-theme="emerald"] .border-slate-700,
-[data-theme="emerald"] [class*="border-slate-700"] {
-  border-color: rgba(16, 185, 129, 0.35) !important;
+[data-theme="dark"] .glow-primary {
+  box-shadow: 0 0 25px rgba(37, 99, 235, 0.35) !important;
 }
 
-[data-theme="emerald"] .bg-blue-600,
-[data-theme="emerald"] [class*="bg-blue-600"] {
-  background-color: #059669 !important;
+/* Secondary & Small Buttons in Dark Cobalt */
+[data-theme="dark"] .bg-slate-800,
+[data-theme="dark"] [class*="bg-slate-800"] {
+  background-color: #1E293B !important;
+  color: #E2E8F0 !important;
+  border-color: #334155 !important;
 }
 
-[data-theme="emerald"] .hover\:bg-blue-500:hover,
-[data-theme="emerald"] [class*="hover:bg-blue-500"]:hover {
-  background-color: #10b981 !important;
+[data-theme="dark"] .hover\:bg-slate-700:hover,
+[data-theme="dark"] [class*="hover:bg-slate-700"]:hover {
+  background-color: #2D3B4F !important;
+  color: #FFFFFF !important;
 }
 
-[data-theme="emerald"] .text-blue-400,
-[data-theme="emerald"] .text-blue-500,
-[data-theme="emerald"] .text-cyan-400 {
-  color: #34d399 !important;
+/* Toggle Switches in Dark Cobalt */
+[data-theme="dark"] button[role="switch"][aria-checked="true"],
+[data-theme="dark"] button[role="switch"].bg-blue-600 {
+  background-color: #2563EB !important;
 }
 
-[data-theme="emerald"] .glow-primary {
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.45) !important;
+[data-theme="dark"] button[role="switch"][aria-checked="false"],
+[data-theme="dark"] button[role="switch"].bg-slate-700 {
+  background-color: #334155 !important;
 }
 
-[data-theme="emerald"] .border-blue-500,
-[data-theme="emerald"] [class*="border-blue-500"] {
-  border-color: rgba(52, 211, 153, 0.5) !important;
+/* ---------------------------------------------------
+   2. SOFT WARM ELEGANCE (Peach & Beige with White)
+   Soft tones, peach & terracotta buttons, subtle warm beige
+   --------------------------------------------------- */
+html[data-theme="soft"],
+body[data-theme="soft"],
+[data-theme="soft"] {
+  background-color: #FAF7F2 !important;
+  color: #2D2926 !important;
 }
 
-/* 2. MIDNIGHT NAVY THEME */
-html[data-theme="midnight"],
-body[data-theme="midnight"],
-[data-theme="midnight"] {
-  background-color: #050c18 !important;
+[data-theme="soft"] body,
+[data-theme="soft"] #root,
+[data-theme="soft"] .bg-\[\#0B0B0B\],
+[data-theme="soft"] [class*="bg-[#0B0B0B]"],
+[data-theme="soft"] main {
+  background-color: #FAF7F2 !important;
+  color: #2D2926 !important;
 }
 
-[data-theme="midnight"] body,
-[data-theme="midnight"] #root,
-[data-theme="midnight"] .bg-\[\#0B0B0B\],
-[data-theme="midnight"] [class*="bg-[#0B0B0B]"] {
-  background-color: #050c18 !important;
+/* Soft Cards & Surfaces (Pure soft white with warm shadow) */
+[data-theme="soft"] .bg-\[\#151515\],
+[data-theme="soft"] [class*="bg-[#151515]"],
+[data-theme="soft"] .glass-panel,
+[data-theme="soft"] .glass-card {
+  background-color: #FFFFFF !important;
+  color: #2D2926 !important;
+  border-color: #E8DFD8 !important;
+  box-shadow: 0 4px 20px rgba(180, 150, 130, 0.08) !important;
 }
 
-[data-theme="midnight"] .bg-\[\#151515\],
-[data-theme="midnight"] [class*="bg-[#151515]"],
-[data-theme="midnight"] aside#sidebar-navigation,
-[data-theme="midnight"] .glass-panel,
-[data-theme="midnight"] .glass-card {
-  background-color: #0a172e !important;
+/* Soft Sidebar & Header (Vanilla Cream) */
+[data-theme="soft"] aside#sidebar-navigation,
+[data-theme="soft"] aside {
+  background-color: #F5EFEB !important;
+  border-color: #E5DACF !important;
+  color: #2D2926 !important;
 }
 
-[data-theme="midnight"] header#main-app-header,
-[data-theme="midnight"] header,
-[data-theme="midnight"] [class*="bg-[#0B0B0B]/90"] {
-  background-color: rgba(5, 12, 24, 0.95) !important;
+[data-theme="soft"] header#main-app-header,
+[data-theme="soft"] header,
+[data-theme="soft"] [class*="bg-[#0B0B0B]/90"] {
+  background-color: rgba(250, 247, 242, 0.95) !important;
+  border-color: #E5DACF !important;
+  color: #2D2926 !important;
 }
 
-[data-theme="midnight"] .bg-\[\#0D0D0D\],
-[data-theme="midnight"] [class*="bg-[#0D0D0D]"],
-[data-theme="midnight"] .bg-slate-900,
-[data-theme="midnight"] [class*="bg-slate-900"] {
-  background-color: #071122 !important;
+/* Soft Sub-containers & Inner Boxes */
+[data-theme="soft"] .bg-\[\#0D0D0D\],
+[data-theme="soft"] [class*="bg-[#0D0D0D]"],
+[data-theme="soft"] .bg-slate-900,
+[data-theme="soft"] [class*="bg-slate-900"],
+[data-theme="soft"] .bg-slate-950 {
+  background-color: #F8F3ED !important;
+  color: #2D2926 !important;
+  border-color: #E2D6CB !important;
 }
 
-[data-theme="midnight"] .border-slate-800,
-[data-theme="midnight"] [class*="border-slate-800"] {
-  border-color: rgba(56, 189, 248, 0.22) !important;
+/* Soft Borders */
+[data-theme="soft"] .border-slate-800,
+[data-theme="soft"] [class*="border-slate-800"],
+[data-theme="soft"] .border-slate-700,
+[data-theme="soft"] [class*="border-slate-700"] {
+  border-color: #E8DFD8 !important;
 }
 
-[data-theme="midnight"] .border-slate-700,
-[data-theme="midnight"] [class*="border-slate-700"] {
-  border-color: rgba(56, 189, 248, 0.35) !important;
+/* Soft Typography */
+[data-theme="soft"] h1,
+[data-theme="soft"] h2,
+[data-theme="soft"] h3,
+[data-theme="soft"] h4,
+[data-theme="soft"] .text-white,
+[data-theme="soft"] [class*="text-white"] {
+  color: #2D2926 !important;
 }
 
-[data-theme="midnight"] .bg-blue-600,
-[data-theme="midnight"] [class*="bg-blue-600"] {
-  background-color: #0284c7 !important;
+[data-theme="soft"] .text-slate-400,
+[data-theme="soft"] .text-slate-500,
+[data-theme="soft"] .text-slate-300,
+[data-theme="soft"] .text-slate-200 {
+  color: #7D7267 !important;
 }
 
-[data-theme="midnight"] .hover\:bg-blue-500:hover,
-[data-theme="midnight"] [class*="hover:bg-blue-500"]:hover {
-  background-color: #38bdf8 !important;
+/* Input Fields in Soft Theme */
+[data-theme="soft"] input,
+[data-theme="soft"] select,
+[data-theme="soft"] textarea {
+  background-color: #FFFFFF !important;
+  color: #2D2926 !important;
+  border-color: #DDCFC2 !important;
 }
 
-[data-theme="midnight"] .text-blue-400,
-[data-theme="midnight"] .text-blue-500 {
+[data-theme="soft"] input::placeholder,
+[data-theme="soft"] textarea::placeholder {
+  color: #A5998E !important;
+}
+
+[data-theme="soft"] input:focus,
+[data-theme="soft"] select:focus,
+[data-theme="soft"] textarea:focus {
+  border-color: #E07A5F !important;
+  outline: none !important;
+}
+
+/* ALL PRIMARY BUTTONS in Soft Theme (Warm Peach & Terracotta) */
+[data-theme="soft"] .bg-blue-600,
+[data-theme="soft"] .bg-purple-600,
+[data-theme="soft"] .bg-emerald-600,
+[data-theme="soft"] [class*="bg-blue-600"],
+[data-theme="soft"] [class*="bg-purple-600"],
+[data-theme="soft"] [class*="bg-emerald-600"],
+[data-theme="soft"] button[type="submit"] {
+  background-color: #E07A5F !important;
+  color: #FFFFFF !important;
+  border-color: #D47055 !important;
+  box-shadow: 0 4px 14px rgba(224, 122, 95, 0.28) !important;
+}
+
+[data-theme="soft"] .hover\:bg-blue-500:hover,
+[data-theme="soft"] .hover\:bg-purple-500:hover,
+[data-theme="soft"] .hover\:bg-emerald-500:hover,
+[data-theme="soft"] [class*="hover:bg-blue-500"]:hover,
+[data-theme="soft"] [class*="hover:bg-purple-500"]:hover,
+[data-theme="soft"] [class*="hover:bg-emerald-500"]:hover,
+[data-theme="soft"] button[type="submit"]:hover {
+  background-color: #D46A4F !important;
+}
+
+/* ALL SECONDARY, OUTLINE, CANCEL & SMALL BUTTONS in Soft Theme (Warm Creamy Beige) */
+[data-theme="soft"] .bg-slate-800,
+[data-theme="soft"] .bg-slate-700,
+[data-theme="soft"] [class*="bg-slate-800"],
+[data-theme="soft"] [class*="bg-slate-700"],
+[data-theme="soft"] button.border,
+[data-theme="soft"] button.border-slate-700,
+[data-theme="soft"] button.border-slate-800 {
+  background-color: #EFE7DE !important;
+  color: #4A3E36 !important;
+  border: 1px solid #D8C8BA !important;
+}
+
+[data-theme="soft"] .hover\:bg-slate-700:hover,
+[data-theme="soft"] .hover\:bg-slate-600:hover,
+[data-theme="soft"] [class*="hover:bg-slate-700"]:hover,
+[data-theme="soft"] button.border:hover {
+  background-color: #E5DACD !important;
+  color: #2D2926 !important;
+  border-color: #C8B8AA !important;
+}
+
+/* Small Control & Icon Buttons in Soft Theme (e.g. notifications bell, sidebar collapse, chevrons) */
+[data-theme="soft"] #notifications-button,
+[data-theme="soft"] #toggle-sidebar-button,
+[data-theme="soft"] button#user-profile-menu-button {
+  background-color: #EFE7DE !important;
+  border-color: #D8C8BA !important;
+  color: #4A3E36 !important;
+}
+
+[data-theme="soft"] #notifications-button:hover,
+[data-theme="soft"] #toggle-sidebar-button:hover {
+  background-color: #E5DACD !important;
+  color: #E07A5F !important;
+}
+
+/* Navigation Tabs in Soft Theme */
+[data-theme="soft"] nav button {
+  color: #7D7267 !important;
+}
+
+[data-theme="soft"] nav button:hover {
+  background-color: #EFE7DE !important;
+  color: #2D2926 !important;
+}
+
+[data-theme="soft"] nav button.bg-blue-600,
+[data-theme="soft"] nav button.bg-purple-600,
+[data-theme="soft"] nav button[aria-current="page"] {
+  background-color: #E07A5F !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(224, 122, 95, 0.3) !important;
+}
+
+[data-theme="soft"] nav button.bg-blue-600 div,
+[data-theme="soft"] nav button.bg-purple-600 div {
+  color: #FFFFFF !important;
+}
+
+/* ALL TOGGLE SWITCHES in Soft Theme */
+[data-theme="soft"] button[role="switch"] {
+  border: 1px solid #D8CABA !important;
+}
+
+[data-theme="soft"] button[role="switch"][aria-checked="true"],
+[data-theme="soft"] button[role="switch"].bg-blue-600 {
+  background-color: #E07A5F !important;
+  border-color: #D47055 !important;
+}
+
+[data-theme="soft"] button[role="switch"][aria-checked="false"],
+[data-theme="soft"] button[role="switch"].bg-slate-700 {
+  background-color: #D8CABA !important;
+  border-color: #C8B9A8 !important;
+}
+
+[data-theme="soft"] button[role="switch"] span {
+  background-color: #FFFFFF !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Accents, Badges & Action Links in Soft Theme */
+[data-theme="soft"] .text-blue-400,
+[data-theme="soft"] .text-blue-500,
+[data-theme="soft"] .text-cyan-400,
+[data-theme="soft"] .text-purple-400 {
+  color: #C6654A !important;
+}
+
+[data-theme="soft"] .bg-blue-500\/10,
+[data-theme="soft"] .bg-purple-500\/10,
+[data-theme="soft"] .bg-blue-500\/20,
+[data-theme="soft"] .bg-purple-500\/20 {
+  background-color: rgba(224, 122, 95, 0.12) !important;
+  border-color: rgba(224, 122, 95, 0.25) !important;
+  color: #C6654A !important;
+}
+
+[data-theme="soft"] .glow-primary {
+  box-shadow: 0 0 15px rgba(224, 122, 95, 0.25) !important;
+}
+
+/* Table Headers & Rows in Soft Theme */
+[data-theme="soft"] thead {
+  background-color: #F5EFEB !important;
+  color: #4A3E36 !important;
+  border-color: #E8DFD8 !important;
+}
+
+[data-theme="soft"] tr {
+  border-color: #E8DFD8 !important;
+}
+
+[data-theme="soft"] tbody tr:hover {
+  background-color: #FAF5F0 !important;
+}
+
+/* ---------------------------------------------------
+   3. SHINY PLATINUM GLASS (Glossy Metallic Chrome & Diamond Cyan)
+   Glossy finish, specular top border shine, diamond cyan buttons
+   --------------------------------------------------- */
+html[data-theme="shiny"],
+body[data-theme="shiny"],
+[data-theme="shiny"] {
+  background: radial-gradient(circle at 50% 0%, #172233 0%, #0b121d 60%, #070b12 100%) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="shiny"] body,
+[data-theme="shiny"] #root,
+[data-theme="shiny"] .bg-\[\#0B0B0B\],
+[data-theme="shiny"] [class*="bg-[#0B0B0B]"],
+[data-theme="shiny"] main {
+  background: radial-gradient(circle at 50% 0%, #172233 0%, #0b121d 60%, #070b12 100%) !important;
+  color: #FFFFFF !important;
+}
+
+/* Glossy Glass Cards & Panels with Specular Shine */
+[data-theme="shiny"] .bg-\[\#151515\],
+[data-theme="shiny"] [class*="bg-[#151515]"],
+[data-theme="shiny"] .glass-panel,
+[data-theme="shiny"] .glass-card {
+  background: linear-gradient(135deg, rgba(25, 36, 54, 0.88) 0%, rgba(12, 18, 30, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* Glossy Metallic Sidebar */
+[data-theme="shiny"] aside#sidebar-navigation,
+[data-theme="shiny"] aside {
+  background: linear-gradient(180deg, #131c2d 0%, #080e18 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.15), 4px 0 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Glossy Metallic Header */
+[data-theme="shiny"] header#main-app-header,
+[data-theme="shiny"] header,
+[data-theme="shiny"] [class*="bg-[#0B0B0B]/90"] {
+  background: linear-gradient(180deg, rgba(24, 34, 52, 0.95) 0%, rgba(13, 19, 30, 0.95) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Inner Glossy Containers */
+[data-theme="shiny"] .bg-\[\#0D0D0D\],
+[data-theme="shiny"] [class*="bg-[#0D0D0D]"],
+[data-theme="shiny"] .bg-slate-900,
+[data-theme="shiny"] [class*="bg-slate-900"] {
+  background: linear-gradient(135deg, rgba(18, 26, 42, 0.9) 0%, rgba(10, 15, 26, 0.9) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="shiny"] .border-slate-800,
+[data-theme="shiny"] [class*="border-slate-800"],
+[data-theme="shiny"] .border-slate-700,
+[data-theme="shiny"] [class*="border-slate-700"] {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Input Fields in Shiny Theme */
+[data-theme="shiny"] input,
+[data-theme="shiny"] select,
+[data-theme="shiny"] textarea {
+  background: linear-gradient(135deg, rgba(16, 24, 38, 0.95) 0%, rgba(9, 14, 24, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="shiny"] input:focus,
+[data-theme="shiny"] select:focus,
+[data-theme="shiny"] textarea:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  outline: none !important;
+}
+
+/* ALL PRIMARY BUTTONS in Shiny Theme (High-Gloss Diamond Cyan Gradient & Specular Top Reflection) */
+[data-theme="shiny"] .bg-blue-600,
+[data-theme="shiny"] .bg-purple-600,
+[data-theme="shiny"] .bg-emerald-600,
+[data-theme="shiny"] [class*="bg-blue-600"],
+[data-theme="shiny"] [class*="bg-purple-600"],
+[data-theme="shiny"] [class*="bg-emerald-600"],
+[data-theme="shiny"] button[type="submit"] {
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0369a1 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.85), 0 4px 18px rgba(14, 165, 233, 0.55), 0 0 15px rgba(56, 189, 248, 0.45) !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme="shiny"] .hover\:bg-blue-500:hover,
+[data-theme="shiny"] .hover\:bg-purple-500:hover,
+[data-theme="shiny"] .hover\:bg-emerald-500:hover,
+[data-theme="shiny"] [class*="hover:bg-blue-500"]:hover,
+[data-theme="shiny"] [class*="hover:bg-purple-500"]:hover,
+[data-theme="shiny"] [class*="hover:bg-emerald-500"]:hover,
+[data-theme="shiny"] button[type="submit"]:hover {
+  filter: brightness(1.2) !important;
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 1), 0 6px 26px rgba(56, 189, 248, 0.8) !important;
+}
+
+/* ALL SECONDARY, OUTLINE, CANCEL & SMALL BUTTONS in Shiny Theme (Glossy Metallic Chrome) */
+[data-theme="shiny"] .bg-slate-800,
+[data-theme="shiny"] .bg-slate-700,
+[data-theme="shiny"] [class*="bg-slate-800"],
+[data-theme="shiny"] [class*="bg-slate-700"],
+[data-theme="shiny"] button.border,
+[data-theme="shiny"] button.border-slate-700,
+[data-theme="shiny"] button.border-slate-800 {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.07) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+  color: #F1F5F9 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="shiny"] .hover\:bg-slate-700:hover,
+[data-theme="shiny"] .hover\:bg-slate-600:hover,
+[data-theme="shiny"] [class*="hover:bg-slate-700"]:hover,
+[data-theme="shiny"] button.border:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.14) 100%) !important;
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  color: #38bdf8 !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 0 12px rgba(56, 189, 248, 0.35) !important;
+}
+
+/* Small Control & Icon Buttons in Shiny Theme */
+[data-theme="shiny"] #notifications-button,
+[data-theme="shiny"] #toggle-sidebar-button,
+[data-theme="shiny"] button#user-profile-menu-button {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  color: #CBD5E1 !important;
+}
+
+[data-theme="shiny"] #notifications-button:hover,
+[data-theme="shiny"] #toggle-sidebar-button:hover {
+  color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 10px rgba(56, 189, 248, 0.4) !important;
+}
+
+/* Navigation Tabs in Shiny Theme */
+[data-theme="shiny"] nav button {
+  color: #CBD5E1 !important;
+}
+
+[data-theme="shiny"] nav button:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
   color: #38bdf8 !important;
 }
 
-[data-theme="midnight"] .glow-primary {
-  box-shadow: 0 0 25px rgba(14, 165, 233, 0.45) !important;
+[data-theme="shiny"] nav button.bg-blue-600,
+[data-theme="shiny"] nav button.bg-purple-600,
+[data-theme="shiny"] nav button[aria-current="page"] {
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0369a1 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 4px 16px rgba(14, 165, 233, 0.5) !important;
+  color: #FFFFFF !important;
 }
 
-[data-theme="midnight"] .border-blue-500,
-[data-theme="midnight"] [class*="border-blue-500"] {
-  border-color: rgba(56, 189, 248, 0.5) !important;
+[data-theme="shiny"] nav button.bg-blue-600 div,
+[data-theme="shiny"] nav button.bg-purple-600 div {
+  color: #FFFFFF !important;
 }
+
+/* ALL TOGGLE SWITCHES in Shiny Theme */
+[data-theme="shiny"] button[role="switch"] {
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+[data-theme="shiny"] button[role="switch"][aria-checked="true"],
+[data-theme="shiny"] button[role="switch"].bg-blue-600 {
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.75), 0 0 14px rgba(56, 189, 248, 0.6) !important;
+}
+
+[data-theme="shiny"] button[role="switch"][aria-checked="false"],
+[data-theme="shiny"] button[role="switch"].bg-slate-700 {
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%) !important;
+}
+
+[data-theme="shiny"] button[role="switch"] span {
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #cbd5e1 100%) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 0 #ffffff !important;
+}
+
+/* Shiny Accents, Badges & Action Links */
+[data-theme="shiny"] .text-blue-400,
+[data-theme="shiny"] .text-blue-500,
+[data-theme="shiny"] .text-cyan-400,
+[data-theme="shiny"] .text-purple-400 {
+  color: #38bdf8 !important;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.6) !important;
+}
+
+[data-theme="shiny"] .bg-blue-500\/10,
+[data-theme="shiny"] .bg-purple-500\/10,
+[data-theme="shiny"] .bg-blue-500\/20,
+[data-theme="shiny"] .bg-purple-500\/20 {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.22) 0%, rgba(2, 132, 199, 0.22) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.55) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  color: #38bdf8 !important;
+}
+
+[data-theme="shiny"] .glow-primary {
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Table Headers & Rows in Shiny Theme */
+[data-theme="shiny"] thead {
+  background: linear-gradient(180deg, rgba(24, 34, 52, 0.95) 0%, rgba(13, 19, 30, 0.95) 100%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="shiny"] tr {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="shiny"] tbody tr:hover {
+  background: rgba(56, 189, 248, 0.08) !important;
+}
+
