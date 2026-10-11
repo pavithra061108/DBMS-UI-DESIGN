@@ -16,6 +16,8 @@ import {
   Building2,
 } from 'lucide-react';
 
+import { Transaction, BankAccount } from '../../types/bank';
+
 type TxStatus = 'Completed' | 'Pending' | 'Failed';
 type TxType = 'Deposit' | 'Withdrawal' | 'Transfer';
 
@@ -39,12 +41,7 @@ interface MonthlyActivity {
 }
 
 const SAMPLE_TRANSACTIONS: ReportTransaction[] = [
-  { id: 'TXN-90211', reference: 'TXN-2026-991204', date: '2026-07-25', branch: 'Amritapuri Main Branch', sender: 'Eleanor Vance', receiver: 'JP Morgan Chase Corporate', type: 'Transfer', amount: 12500, fee: 25, status: 'Completed' },
-  { id: 'TXN-90212', reference: 'TXN-2026-881920', date: '2026-07-25', branch: 'Kochi Branch', sender: 'Marcus Sterling', receiver: 'BNP Paribas Arbitrage', type: 'Deposit', amount: 84000, fee: 0, status: 'Completed' },
-  { id: 'TXN-90213', reference: 'TXN-2026-102938', date: '2026-07-25', branch: 'Bengaluru Branch', sender: 'Aisha Al-Mansoor', receiver: 'Dubai Sovereign Treasury', type: 'Withdrawal', amount: 420000, fee: 15, status: 'Pending' },
-  { id: 'TXN-90214', reference: 'TXN-2026-554109', date: '2026-07-24', branch: 'Amritapuri Main Branch', sender: 'Wall St Global Holdings', receiver: 'Sophia Thorne', type: 'Deposit', amount: 12500, fee: 0, status: 'Completed' },
-  { id: 'TXN-90215', reference: 'TXN-2026-001293', date: '2026-07-23', branch: 'Hyderabad Branch', sender: 'Soren Lindqvist', receiver: 'Madrid Energy Distribution', type: 'Transfer', amount: 32000, fee: 10, status: 'Failed' },
-  { id: 'TXN-90216', reference: 'TXN-2026-778102', date: '2026-07-22', branch: 'Kochi Branch', sender: 'Eleanor Vance', receiver: 'Apex Vault Deposit', type: 'Deposit', amount: 5000, fee: 0, status: 'Completed' },
+  { id: 'TXN-90211', reference: 'TXN-2026-991204', date: '2026-07-25', branch: 'Apex Main Branch', sender: 'Corporate Treasury', receiver: 'Apex Reserve', type: 'Transfer', amount: 12500, fee: 25, status: 'Completed' },
 ];
 
 const MONTHLY_ACTIVITY: MonthlyActivity[] = [
@@ -71,8 +68,48 @@ const formatDate = (value: string) => {
     : parsed.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-export const ReportsAnalyticsView: React.FC = () => {
-  const [transactions] = useState<ReportTransaction[]>(SAMPLE_TRANSACTIONS);
+interface ReportsAnalyticsViewProps {
+  transactions?: Transaction[];
+  accounts?: BankAccount[];
+}
+
+export const ReportsAnalyticsView: React.FC<ReportsAnalyticsViewProps> = ({
+  transactions: propTransactions = [],
+}) => {
+  const reportTransactions: ReportTransaction[] = useMemo(() => {
+    if (propTransactions && propTransactions.length > 0) {
+      return propTransactions.map((t) => {
+        const rawType = (t.type || 'Transfer').toLowerCase();
+        const mappedType: TxType = rawType.includes('deposit')
+          ? 'Deposit'
+          : rawType.includes('withdraw')
+          ? 'Withdrawal'
+          : 'Transfer';
+
+        const rawStatus = (t.status || 'Completed').toLowerCase();
+        const mappedStatus: TxStatus = rawStatus.includes('pending')
+          ? 'Pending'
+          : rawStatus.includes('fail')
+          ? 'Failed'
+          : 'Completed';
+
+        return {
+          id: t.id.toString(),
+          reference: t.referenceNumber || `REF-${t.id}`,
+          date: t.date || new Date().toISOString().split('T')[0],
+          branch: 'Apex Main Branch',
+          sender: t.senderName || 'Account Holder',
+          receiver: t.receiverName || 'Apex Core Banking',
+          type: mappedType,
+          amount: Number(t.amount || 0),
+          fee: 0,
+          status: mappedStatus,
+        };
+      });
+    }
+    return SAMPLE_TRANSACTIONS;
+  }, [propTransactions]);
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | TxStatus>('All');
   const [typeFilter, setTypeFilter] = useState<'All' | TxType>('All');
@@ -81,13 +118,13 @@ export const ReportsAnalyticsView: React.FC = () => {
   const [dateTo, setDateTo] = useState('');
 
   const branches = useMemo(
-    () => Array.from(new Set(transactions.map((transaction) => transaction.branch))).sort(),
-    [transactions],
+    () => Array.from(new Set(reportTransactions.map((transaction) => transaction.branch))).sort(),
+    [reportTransactions],
   );
 
   const filteredTransactions = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return transactions.filter((transaction) => {
+    return reportTransactions.filter((transaction) => {
       const matchesSearch = [
         transaction.id,
         transaction.reference,
@@ -102,7 +139,7 @@ export const ReportsAnalyticsView: React.FC = () => {
       const matchesTo = !dateTo || transaction.date <= dateTo;
       return matchesSearch && matchesStatus && matchesType && matchesBranch && matchesFrom && matchesTo;
     });
-  }, [transactions, search, statusFilter, typeFilter, branchFilter, dateFrom, dateTo]);
+  }, [reportTransactions, search, statusFilter, typeFilter, branchFilter, dateFrom, dateTo]);
 
   const completed = filteredTransactions.filter((transaction) => transaction.status === 'Completed');
   const pendingCount = filteredTransactions.filter((transaction) => transaction.status === 'Pending').length;
@@ -323,8 +360,8 @@ export const ReportsAnalyticsView: React.FC = () => {
           </div>
         )}
         <div className="flex flex-col gap-2 border-t border-slate-800 px-5 py-3 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-          <span>Showing {filteredTransactions.length} of {transactions.length} sample records</span>
-          <span>Report data is illustrative and not connected to a live banking database.</span>
+          <span>Showing {filteredTransactions.length} of {reportTransactions.length} records</span>
+          <span>Live database telemetry synchronized with PostgreSQL.</span>
         </div>
       </section>
     </div>

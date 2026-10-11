@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 
-// Create a new Bank Account
+// Create a new Bank Account (Savings / Checking)
 exports.createAccount = async (req, res) => {
     const { accountType, initialBalance } = req.body;
     const userId = req.user.userId; 
@@ -20,13 +20,14 @@ exports.createAccount = async (req, res) => {
             targetBranchId = branchCheck.rows[0].branchid;
         }
 
-        // 2. Generate Account Number and Insert Account with 0 (or requested balance)
+        // 2. Generate unique Account Number and Insert Account
         const accNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+        const validAccountType = accountType === 'Checking' ? 'Checking' : (accountType || 'Savings');
 
         const result = await pool.query(
-            `INSERT INTO Account (AccountNumber, CustomerID, BranchID, AccountType, Balance) 
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [accNumber, userId, targetBranchId, accountType || 'Savings', initialBalance !== undefined ? initialBalance : 0]
+            `INSERT INTO Account (AccountNumber, CustomerID, BranchID, AccountType, Balance, Status) 
+             VALUES ($1, $2, $3, $4, $5, 'Active') RETURNING *`,
+            [accNumber, userId, targetBranchId, validAccountType, initialBalance !== undefined ? initialBalance : 0]
         );
         
         res.status(201).json({ message: 'Account created successfully', account: result.rows[0] });
@@ -48,6 +49,7 @@ exports.getAccounts = async (req, res) => {
                 a.AccountNumber AS "accountNumber",
                 'IN89APEX' || a.AccountNumber AS iban,
                 u.Name AS "customerName",
+                u.UserID AS "userId",
                 a.AccountType AS type,
                 a.Balance AS balance,
                 'INR' AS currency,
@@ -63,15 +65,46 @@ exports.getAccounts = async (req, res) => {
 
         let values = [];
         
-        if (role === 'Customer') {
+        if (role && role.toLowerCase() === 'customer') {
             query += ` WHERE a.CustomerID = $1`;
             values.push(userId);
         }
+
+        query += ` ORDER BY a.AccountID DESC`;
 
         const result = await pool.query(query, values);
         res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching accounts:', error);
         res.status(500).json({ error: 'Failed to fetch accounts' });
+    }
+};
+
+// Update Account Status (Deactivation Request, Approval, Rejection)
+exports.updateAccountStatus = async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    const role = req.user.role;
+    const userId = req.user.userId;
+
+    try {
+        const numericId = parseInt(id.toString().replace(/\D/g, ''), 10) || id;
+        
+        // If customer is requesting deactivation, verify account belongs to customer
+        if (role && role.toLowerCase() === 'customer') {
+            const check = await pool.query('SELECT * FROM Account WHERE AccountID = $1 AND CustomerID = $2', [numericId, userId]);
+            if (check.rows.length === 0) {
+                return res.status(403).json({ error: 'Access denied to this account.' });
+            }
+            if (status !== 'Deactivation Requested') {
+                return res.status(400).json({ error: 'Customers can only request deactivation.' });
+            }
+        }
+
+        await pool.query('UPDATE Account SET Status = $1 WHERE AccountID = $2', [status, numericId]);
+        res.status(200).json({ message: 'Account status updated successfully', status });
+    } catch (error) {
+        console.error('Error updating account status:', error);
+        res.status(500).json({ error: 'Failed to update account status' });
     }
 };

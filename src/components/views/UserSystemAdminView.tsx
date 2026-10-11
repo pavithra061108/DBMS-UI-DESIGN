@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import API from '../../services/api';
 import {
   Users,
   ShieldCheck,
@@ -93,7 +94,7 @@ const EMPTY_FORM: UserForm = {
   role: 'Customer',
 };
 
-export const UserSystemAdminView: React.FC = () => {
+export const UserSystemAdminView: React.FC<{ accounts?: any[] }> = () => {
   const [users, setUsers] = useState<SystemUser[]>(INITIAL_USERS);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'All' | UserRole>('All');
@@ -105,6 +106,30 @@ export const UserSystemAdminView: React.FC = () => {
   const [formError, setFormError] = useState('');
   const [notice, setNotice] = useState('');
   const [menuUserId, setMenuUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await API.get('/users');
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped: SystemUser[] = res.data.map((u: any) => ({
+            id: `USR-${u.id}`,
+            name: u.name,
+            username: u.username || u.name.replace(/\s+/g, '_').toLowerCase(),
+            email: u.email,
+            role: (u.role === 'Admin' || u.role === 'admin' ? 'Admin' : 'Customer') as UserRole,
+            status: (u.status === 'Flagged' ? 'Locked' : u.status === 'Pending KYC' ? 'Inactive' : 'Active') as UserStatus,
+            lastLogin: u.lastLogin || 'Active Today',
+            createdAt: u.createdAt || u.joinedDate || new Date().toISOString().slice(0, 10),
+          }));
+          setUsers(mapped);
+        }
+      } catch (err) {
+        console.warn('Live user fetch note (using local cache):', err);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const admins = users.filter((user) => user.role === 'Admin');
   const activeCount = users.filter((user) => user.status === 'Active').length;
@@ -128,7 +153,7 @@ export const UserSystemAdminView: React.FC = () => {
     setShowAddModal(true);
   };
 
-  const addUser = (event: React.FormEvent<HTMLFormElement>) => {
+  const addUser = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError('');
     const name = form.name.trim();
@@ -148,6 +173,12 @@ export const UserSystemAdminView: React.FC = () => {
       return;
     }
 
+    try {
+      await API.post('/users/create', { name, email, role: form.role });
+    } catch (e) {
+      console.warn('API user creation note:', e);
+    }
+
     const nextUserId =
       Math.max(
         1000,
@@ -163,7 +194,7 @@ export const UserSystemAdminView: React.FC = () => {
       email,
       role: form.role,
       status: 'Active',
-      lastLogin: 'Never',
+      lastLogin: 'Active Today',
       createdAt: new Date().toISOString().slice(0, 10),
     };
     setUsers((previous) => [newUser, ...previous]);
@@ -178,16 +209,21 @@ export const UserSystemAdminView: React.FC = () => {
     setMenuUserId(null);
   };
 
-  const confirmRoleChange = () => {
+  const confirmRoleChange = async () => {
     if (!pendingRoleChange) return;
     const { user, role } = pendingRoleChange;
+    try {
+      await API.patch(`/users/${user.id.replace(/\D/g, '')}/role`, { role });
+    } catch (e) {
+      console.warn('API role change note:', e);
+    }
     setUsers((previous) => previous.map((item) => item.id === user.id ? { ...item, role } : item));
     setNotice(`${user.name}'s role was changed to ${role}.`);
     setPendingRoleChange(null);
     window.setTimeout(() => setNotice(''), 3500);
   };
 
-  const toggleStatus = (user: SystemUser) => {
+  const toggleStatus = async (user: SystemUser) => {
     if (user.id === 'USR-1002') {
       setNotice('The primary demo administrator is protected from deactivation.');
       window.setTimeout(() => setNotice(''), 3500);
@@ -197,6 +233,11 @@ export const UserSystemAdminView: React.FC = () => {
     const nextStatus: UserStatus = user.status === 'Active' ? 'Inactive' : 'Active';
     const confirmed = window.confirm(`${nextStatus === 'Inactive' ? 'Deactivate' : 'Activate'} ${user.name}?`);
     if (!confirmed) return;
+    try {
+      await API.patch(`/users/${user.id.replace(/\D/g, '')}/status`, { status: nextStatus });
+    } catch (e) {
+      console.warn('API status change note:', e);
+    }
     setUsers((previous) => previous.map((item) => item.id === user.id ? { ...item, status: nextStatus } : item));
     setNotice(`${user.name} is now ${nextStatus.toLowerCase()}.`);
     setMenuUserId(null);

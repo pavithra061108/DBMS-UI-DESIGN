@@ -25,9 +25,9 @@ interface LoanStatusViewProps {
 }
 
 const money = (value: number) =>
-  new Intl.NumberFormat('en-US', {
+  new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
     maximumFractionDigits: 2,
   }).format(Number.isFinite(value) ? value : 0);
 
@@ -63,9 +63,8 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
     () =>
       loans.filter(
         (loan) =>
-          loan.customerId === currentUser.id ||
-          (loan.customerName.trim().toLowerCase() === currentUser.name.trim().toLowerCase() &&
-            !loan.customerId)
+          String(loan.customerId) === String(currentUser.id) ||
+          (loan.customerName?.trim().toLowerCase() === currentUser.name?.trim().toLowerCase())
       ),
     [loans, currentUser.id, currentUser.name]
   );
@@ -88,7 +87,7 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
     const months = Number(termMonths);
 
     if (!Number.isFinite(principal) || principal < 1000) {
-      onShowToast('Invalid Loan Amount', 'Enter a loan amount of at least $1,000.', 'error');
+      onShowToast('Invalid Loan Amount', 'Enter a loan amount of at least ₹1,000.', 'error');
       return;
     }
     if (!Number.isFinite(rate) || rate <= 0 || rate > 40) {

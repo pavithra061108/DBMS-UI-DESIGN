@@ -37,7 +37,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { LoanApplication, BranchMetric } from '../../types/bank';
-import { INITIAL_BRANCH_METRICS, INITIAL_LOANS } from '../../data/mockData';
+import { INITIAL_BRANCH_METRICS } from '../../data/mockData';
 
 interface ManagerViewsProps {
   currentTab: string;
@@ -54,7 +54,10 @@ export const ManagerDashboardView: React.FC<ManagerViewsProps> = ({
   onShowToast,
   onUpdateLoanStatus,
 }) => {
-  const [loanList, setLoanList] = useState<LoanApplication[]>(loans.length > 0 ? loans : INITIAL_LOANS);
+  const [loanList, setLoanList] = useState<LoanApplication[]>(loans);
+  React.useEffect(() => {
+    setLoanList(loans);
+  }, [loans]);
   const pendingLoans = loanList.filter((l) => l.status === 'Pending');
   const totalLiquidity = INITIAL_BRANCH_METRICS.reduce((s, b) => s + b.vaultLiquidity, 0);
 
@@ -208,7 +211,11 @@ export const LoanManagementView: React.FC<{
   onShowToast: (title: string, desc: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
   onUpdateLoanStatus?: (loanId: string, status: 'Approved' | 'Rejected', reason?: string) => void;
 }> = ({ loans, onShowToast, onUpdateLoanStatus }) => {
-  const [loanList, setLoanList] = useState<LoanApplication[]>(loans.length > 0 ? loans : INITIAL_LOANS);
+  const [loanList, setLoanList] = useState<LoanApplication[]>(loans);
+  React.useEffect(() => {
+    setLoanList(loans);
+  }, [loans]);
+
   const [rejectReasonModal, setRejectReasonModal] = useState<{ open: boolean; loanId: string }>({
     open: false,
     loanId: '',
@@ -217,19 +224,19 @@ export const LoanManagementView: React.FC<{
 
   const handleApproveLoan = (id: string) => {
     setLoanList((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status: 'Approved', reason: 'Underwriting risk approved by Manager' } : l))
+      prev.map((l) => (l.id === id ? { ...l, status: 'Approved', reason: 'Underwriting risk approved by Bank Admin' } : l))
     );
-    if (onUpdateLoanStatus) onUpdateLoanStatus(id, 'Approved', 'Underwriting risk approved by Manager');
-    onShowToast('Loan Facility Approved', `Loan #${id} approved. Credit facility created and disbursement trigger queued.`, 'success');
+    if (onUpdateLoanStatus) onUpdateLoanStatus(id, 'Approved', 'Underwriting risk approved by Bank Admin');
+    onShowToast('Loan Application Approved', `Loan #${id} approved successfully in the database.`, 'success');
   };
 
   const handleConfirmReject = () => {
     const id = rejectReasonModal.loanId;
     setLoanList((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status: 'Rejected', reason: rejectReasonText || 'Debt ratio exceeds limit' } : l))
+      prev.map((l) => (l.id === id ? { ...l, status: 'Rejected', reason: rejectReasonText || 'Eligibility criteria not met' } : l))
     );
     if (onUpdateLoanStatus) onUpdateLoanStatus(id, 'Rejected', rejectReasonText);
-    onShowToast('Loan Rejected', `Loan #${id} rejected. Applicant notified.`, 'error');
+    onShowToast('Loan Rejected', `Loan #${id} marked as Rejected.`, 'error');
     setRejectReasonModal({ open: false, loanId: '' });
   };
 
@@ -239,91 +246,97 @@ export const LoanManagementView: React.FC<{
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-purple-500/20 text-purple-400 border border-purple-500/30">
-              Underwriting Desk
+              Admin Loan Management
             </span>
-            <span className="text-xs text-slate-400 font-mono">Credit Risk Engine Active</span>
+            <span className="text-xs text-slate-400 font-mono">Live PostgreSQL Connected</span>
           </div>
-          <h1 className="text-2xl font-black text-white mt-1">Loan Underwriting & Credit Risk Management</h1>
+          <h1 className="text-2xl font-black text-white mt-1">Customer Loan Underwriting & Approval</h1>
           <p className="text-xs text-slate-300">
-            Assess applicant credit scores, verify EMI amortization schedules, and execute loan approval/rejection.
+            Review live loan applications submitted by bank customers, inspect credit terms, and approve or reject them.
           </p>
         </div>
       </div>
 
       <div className="bg-[#1E293B] p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
         <h2 className="text-base font-bold text-white flex items-center justify-between border-b border-slate-700 pb-3">
-          <span>Credit Line & Mortgage Applications</span>
+          <span>Active Customer Loan Applications</span>
           <span className="text-xs text-slate-400 font-mono">{loanList.length} Total Applications</span>
         </h2>
 
-        <div className="space-y-4">
-          {loanList.map((loan) => (
-            <div key={loan.id} className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-white">{loan.customerName}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                      {loan.loanType}
-                    </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400">
-                      Credit Score: {loan.creditScore}
-                    </span>
-                  </div>
-                  <p className="text-xs font-mono text-slate-400 mt-1">ID: {loan.id} • Applied: {loan.appliedDate}</p>
-                </div>
-
-                <div>
-                  {loan.status === 'Approved' && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      Approved
-                    </span>
-                  )}
-                  {loan.status === 'Rejected' && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
-                      Rejected
-                    </span>
-                  )}
-                  {loan.status === 'Pending' && (
+        {loanList.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 text-xs bg-slate-900/40 rounded-2xl border border-slate-800">
+            No loan applications found in the database. When a customer applies for a loan, it will appear here for review.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {loanList.map((loan) => (
+              <div key={loan.id} className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleApproveLoan(loan.id)}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5"
-                      >
-                        <CheckCircle2 className="w-4 h-4" /> Approve
-                      </button>
-                      <button
-                        onClick={() => setRejectReasonModal({ open: true, loanId: loan.id })}
-                        className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5"
-                      >
-                        <XCircle className="w-4 h-4" /> Reject
-                      </button>
+                      <span className="text-sm font-bold text-white">{loan.customerName}</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        {loan.loanType}
+                      </span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400">
+                        Credit Score: {loan.creditScore}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
+                    <p className="text-xs font-mono text-slate-400 mt-1">ID: {loan.id} • Applied: {loan.appliedDate}</p>
+                  </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono bg-black/40 p-3 rounded-xl border border-slate-800">
-                <div>
-                  <p className="text-[10px] font-sans text-slate-400">Principal</p>
-                  <p className="font-bold text-white">${loan.amount.toLocaleString()} USD</p>
+                  <div>
+                    {loan.status === 'Approved' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        Approved
+                      </span>
+                    )}
+                    {loan.status === 'Rejected' && (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                        Rejected
+                      </span>
+                    )}
+                    {loan.status === 'Pending' && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleApproveLoan(loan.id)}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 transition"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Approve
+                        </button>
+                        <button
+                          onClick={() => setRejectReasonModal({ open: true, loanId: loan.id })}
+                          className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 transition"
+                        >
+                          <XCircle className="w-4 h-4" /> Reject
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-sans text-slate-400">Rate</p>
-                  <p className="font-bold text-purple-400">{loan.interestRate}%</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-sans text-slate-400">Tenure</p>
-                  <p className="font-bold text-slate-300">{loan.termMonths} Months</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-sans text-slate-400">Monthly EMI</p>
-                  <p className="font-bold text-emerald-400">${loan.emi.toFixed(2)}</p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono bg-black/40 p-3 rounded-xl border border-slate-800">
+                  <div>
+                    <p className="text-[10px] font-sans text-slate-400">Principal</p>
+                    <p className="font-bold text-white">₹{Number(loan.amount).toLocaleString('en-IN')}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-sans text-slate-400">Rate</p>
+                    <p className="font-bold text-purple-400">{loan.interestRate}%</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-sans text-slate-400">Tenure</p>
+                    <p className="font-bold text-slate-300">{loan.termMonths} Months</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-sans text-slate-400">Monthly EMI</p>
+                    <p className="font-bold text-emerald-400">₹{Number(loan.emi).toFixed(2)}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {rejectReasonModal.open && (

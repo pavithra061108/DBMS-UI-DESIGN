@@ -91,17 +91,18 @@ exports.processTransaction = async (req, res) => {
 // 2. Fetch Transaction History mapped for the Frontend UI
 exports.getTransactions = async (req, res) => {
     const userId = req.user.userId;
+    const role = req.user.role;
     try {
-        const query = `
+        let query = `
             SELECT 
                 'TXN-' || t.AccountID || '-' || t.TransactionSeqNo AS id,
                 'REF-' || t.AccountID || t.TransactionSeqNo AS "referenceNumber",
                 u.Name AS "senderName",
-                'US89APEX' || a.AccountNumber AS "senderIban",
+                'IN89APEX' || a.AccountNumber AS "senderIban",
                 CASE WHEN t.TransactionType = 'TransferOut' THEN t.Description ELSE u.Name END AS "receiverName",
-                CASE WHEN t.TransactionType = 'TransferOut' THEN 'EXTERNAL_IBAN' ELSE 'US89APEX' || a.AccountNumber END AS "receiverIban",
+                CASE WHEN t.TransactionType = 'TransferOut' THEN 'EXTERNAL_IBAN' ELSE 'IN89APEX' || a.AccountNumber END AS "receiverIban",
                 t.Amount AS amount,
-                'USD' AS currency,
+                'INR' AS currency,
                 TO_CHAR(t.TransactionDate, 'YYYY-MM-DD') AS date,
                 TO_CHAR(t.TransactionDate, 'HH12:MI:SS AM') AS time,
                 CASE WHEN t.TransactionType = 'TransferOut' THEN 'Transfer' ELSE t.TransactionType END AS type,
@@ -115,10 +116,14 @@ exports.getTransactions = async (req, res) => {
             JOIN Customer c ON a.CustomerID = c.UserID
             JOIN "User" u ON c.UserID = u.UserID
             JOIN Branch b ON a.BranchID = b.BranchID
-            WHERE a.CustomerID = $1
-            ORDER BY t.TransactionDate DESC
         `;
-        const result = await pool.query(query, [userId]);
+        let values = [];
+        if (role && role.toLowerCase() === 'customer') {
+            query += ` WHERE a.CustomerID = $1`;
+            values.push(userId);
+        }
+        query += ` ORDER BY t.TransactionDate DESC`;
+        const result = await pool.query(query, values);
         res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -150,11 +155,11 @@ exports.getAccountStatement = async (req, res) => {
                 'TXN-' || t.AccountID || '-' || t.TransactionSeqNo AS id,
                 'REF-' || t.AccountID || t.TransactionSeqNo AS "referenceNumber",
                 u.Name AS "senderName",
-                'US89APEX' || a.AccountNumber AS "senderIban",
+                'IN89APEX' || a.AccountNumber AS "senderIban",
                 CASE WHEN t.TransactionType = 'TransferOut' THEN t.Description ELSE u.Name END AS "receiverName",
-                CASE WHEN t.TransactionType = 'TransferOut' THEN 'EXTERNAL_IBAN' ELSE 'US89APEX' || a.AccountNumber END AS "receiverIban",
+                CASE WHEN t.TransactionType = 'TransferOut' THEN 'EXTERNAL_IBAN' ELSE 'IN89APEX' || a.AccountNumber END AS "receiverIban",
                 t.Amount AS amount,
-                'USD' AS currency,
+                'INR' AS currency,
                 TO_CHAR(t.TransactionDate, 'YYYY-MM-DD') AS date,
                 TO_CHAR(t.TransactionDate, 'HH12:MI:SS AM') AS time,
                 CASE WHEN t.TransactionType = 'TransferOut' THEN 'Transfer' ELSE t.TransactionType END AS type,

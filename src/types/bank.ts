@@ -75,7 +75,9 @@ export type AccountStatus =
   | 'Active'
   | 'Dormant'
   | 'Frozen'
-  | 'Closed';
+  | 'Closed'
+  | 'Deactivation Requested'
+  | 'Deactivated';
 
 // ============================================
 // CUSTOMER
@@ -96,7 +98,7 @@ export interface Customer {
   creditScore: number;
   joinedDate: string;
   avatar: string;
-  role?: UserRole;
+  role?: UserRole | string;
 }
 
 // ============================================
@@ -221,11 +223,13 @@ export interface SysUser {
   username: string;
   fullName: string;
   email: string;
-  role: UserRole;
+  role: UserRole | string;
   branch: string;
   status: 'Active' | 'Inactive' | 'Locked';
   lastLogin: string;
   permissions: string[];
+  isLocked?: boolean;
+  mfaEnabled?: boolean;
 }
 
 // ============================================

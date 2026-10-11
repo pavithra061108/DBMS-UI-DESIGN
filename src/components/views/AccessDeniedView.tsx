@@ -13,7 +13,7 @@ export const AccessDeniedView: React.FC<AccessDeniedViewProps> = ({
   attemptedTab,
   onGoDashboard,
 }) => {
-  const roleNames: Record<UserRole, string> = {
+  const roleNames: Record<string, string> = {
     customer: 'Customer',
     teller: 'Bank Teller',
     manager: 'Branch Manager',

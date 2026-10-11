@@ -11,6 +11,8 @@ const authRoutes = require('./src/routes/authRoutes');
 const accountRoutes = require('./src/routes/accountRoutes');
 const transactionRoutes = require('./src/routes/transactionRoutes');
 const loanRoutes = require('./src/routes/loanRoutes');
+const userRoutes = require('./src/routes/userRoutes');
+const branchRoutes = require('./src/routes/branchRoutes');
 
 const app = express();
 
@@ -32,11 +34,13 @@ app.get('/', async (req, res) => {
     }
 });
 
-// Mount Auth Routes
+// Mount Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/accounts', accountRoutes); 
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/loans', loanRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/branches', branchRoutes);
 
 
 // Start the Server

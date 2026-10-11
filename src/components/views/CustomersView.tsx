@@ -11,14 +11,19 @@ import {
   MapPin,
   Landmark,
   User,
+  AlertTriangle,
+  XCircle,
+  Clock,
 } from 'lucide-react';
 import { Customer, BankAccount } from '../../types/bank';
+import API from '../../services/api';
 
 interface CustomersViewProps {
   customers: Customer[];
   accounts?: BankAccount[]; // Added to pull live account data
   onUpdateCustomer: (updated: Customer) => void;
   onShowToast: (title: string, desc: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+  onRefreshAccounts?: () => void;
 }
 
 export const CustomersView: React.FC<CustomersViewProps> = ({
@@ -26,9 +31,11 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   accounts = [],
   onUpdateCustomer,
   onShowToast,
+  onRefreshAccounts,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [processingAccountId, setProcessingAccountId] = useState<string | null>(null);
 
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -36,6 +43,36 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
   const [editPhone, setEditPhone] = useState('');
   const [editAddress, setEditAddress] = useState('');
   const [editStatus, setEditStatus] = useState<'Verified' | 'Pending KYC' | 'Flagged'>('Verified');
+
+  const pendingDeactivations = accounts.filter(
+    (a) => a.status.toLowerCase() === 'deactivation requested'
+  );
+
+  const handleApproveDeactivation = async (account: BankAccount) => {
+    try {
+      setProcessingAccountId(account.id.toString());
+      await API.patch(`/accounts/${account.id}/status`, { status: 'Deactivated' });
+      onShowToast('Account Deactivated', `Account ${account.accountNumber} (${account.customerName}) has been deactivated.`, 'success');
+      if (onRefreshAccounts) onRefreshAccounts();
+    } catch (err: any) {
+      onShowToast('Action Failed', err.response?.data?.error || 'Failed to deactivate account.', 'error');
+    } finally {
+      setProcessingAccountId(null);
+    }
+  };
+
+  const handleRejectDeactivation = async (account: BankAccount) => {
+    try {
+      setProcessingAccountId(account.id.toString());
+      await API.patch(`/accounts/${account.id}/status`, { status: 'Active' });
+      onShowToast('Deactivation Rejected', `Account ${account.accountNumber} has been retained as Active.`, 'info');
+      if (onRefreshAccounts) onRefreshAccounts();
+    } catch (err: any) {
+      onShowToast('Action Failed', err.response?.data?.error || 'Failed to update account.', 'error');
+    } finally {
+      setProcessingAccountId(null);
+    }
+  };
 
   // Safely filter customers
   const filteredCustomers = customers.filter(
@@ -98,6 +135,85 @@ export const CustomersView: React.FC<CustomersViewProps> = ({
           />
         </div>
       </div>
+
+      {/* Account Deactivation Requests Section */}
+      <section className="p-6 sm:p-8 rounded-3xl bg-[#1E293B] border border-slate-700/80 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                Pending Account Deactivation Requests
+                {pendingDeactivations.length > 0 && (
+                  <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    {pendingDeactivations.length} Pending
+                  </span>
+                )}
+              </h2>
+              <p className="text-xs text-slate-400">
+                Customer requests to deactivate their bank accounts. Review and take administrative action to approve or reject.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {pendingDeactivations.length === 0 ? (
+          <div className="py-6 text-center text-slate-400 text-xs flex items-center justify-center gap-2 bg-slate-900/40 rounded-2xl border border-slate-800">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <span>No pending account deactivation requests. All customer accounts are active and in good standing.</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pendingDeactivations.map((acc) => (
+              <div
+                key={acc.id}
+                className="bg-[#0F172A] border border-amber-500/40 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-4"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                      {acc.type}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                      Pending Approval
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-white">{acc.customerName}</h3>
+                  <p className="font-mono text-xs text-slate-400 mt-0.5">Account Number: {acc.accountNumber}</p>
+                  <p className="text-xs text-slate-400 mt-2">
+                    Current Balance:{' '}
+                    <span className="font-bold text-emerald-400 font-mono">
+                      ₹{Number(acc.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
+                  <button
+                    disabled={processingAccountId === acc.id.toString()}
+                    onClick={() => handleApproveDeactivation(acc)}
+                    className="flex-1 py-2 px-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-rose-600/20 disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    {processingAccountId === acc.id.toString() ? 'Processing...' : 'Approve Deactivation'}
+                  </button>
+                  <button
+                    disabled={processingAccountId === acc.id.toString()}
+                    onClick={() => handleRejectDeactivation(acc)}
+                    className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-700 disabled:opacity-50"
+                  >
+                    <XCircle className="w-3.5 h-3.5" />
+                    {processingAccountId === acc.id.toString() ? 'Processing...' : 'Reject Request'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Customer List Cards / Table */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

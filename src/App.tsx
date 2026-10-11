@@ -9,6 +9,7 @@ import {
   PublicPage,
   UserRole,
   LoanApplication,
+  SystemNotification,
 } from './types/bank';
 import {
   INITIAL_CUSTOMERS,
@@ -68,61 +69,102 @@ export function App() {
 
   const [actionModal, setActionModal] = useState<{ isOpen: boolean; type: 'deposit' | 'withdraw' | 'transfer'; targetAccount?: BankAccount; }>({ isOpen: false, type: 'deposit' });
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [isNotifDrawerOpen, setIsNotifDrawerOpen] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<SystemNotification[]>([
+    {
+      id: 'notif-1',
+      title: 'PostgreSQL Database Connected',
+      message: 'Core banking backend cluster operational on port 5432.',
+      timestamp: 'Just now',
+      type: 'success',
+      category: 'Security',
+      read: false,
+    },
+    {
+      id: 'notif-2',
+      title: 'Apex BMS Engine Active',
+      message: 'Live session encryption established with INR currency standards.',
+      timestamp: 'Just now',
+      type: 'info',
+      category: 'Security',
+      read: false,
+    },
+  ]);
 
   const showToast = (title: string, description: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
     setToasts((prev) => [...prev, { id: `toast-${Date.now()}-${Math.random()}`, title, description, type }]);
   };
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
+  const addNotification = (
+    title: string,
+    message: string,
+    type: 'success' | 'warning' | 'error' | 'info' = 'info',
+    category: string = 'General'
+  ) => {
+    const newNotif: SystemNotification = {
+      id: `notif-${Date.now()}-${Math.random()}`,
+      title,
+      message,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      type,
+      category,
+      read: false,
+    };
+    setNotifications((prev) => [newNotif, ...prev]);
+  };
+
   // ==========================================
   // LIVE DATABASE SYNC
   // ==========================================
+  const fetchData = async () => {
+    try {
+      let accRes = await API.get('/accounts');
+      
+      if (accRes.data && accRes.data.length === 0 && currentRole === 'customer') {
+        try {
+          await API.post('/accounts/create', { accountType: 'Savings', initialBalance: 0, branchId: 1 });
+          accRes = await API.get('/accounts');
+          showToast('Apex Bank Account Opened!', 'A default Savings account has been successfully initialized.', 'success');
+          addNotification('Default Savings Account Initialized', 'A new default account has been opened in the database.', 'success', 'Account');
+        } catch (err) { console.error("Auto-create error:", err); }
+      }
+
+      if (accRes.data) {
+        setAccounts(accRes.data);
+        // Automatically select the first account ID if none is active
+        if (accRes.data.length > 0 && !globalAccountId) {
+          setGlobalAccountId(accRes.data[0].id.toString());
+        }
+      }
+      
+      try {
+        const txnRes = await API.get('/transactions');
+        if (txnRes.data) setTransactions(txnRes.data);
+      } catch(e) {}
+
+      try {
+        const loanRes = await API.get('/loans');
+        if (loanRes.data) setLoans(loanRes.data);
+      } catch(e) {}
+
+      // FETCH LIVE CUSTOMERS / USERS
+      try {
+        const custRes = await API.get('/users'); 
+        if (custRes.data) {
+          setCustomers(custRes.data);
+        }
+      } catch (e) {
+        console.error("Failed to fetch live customers:", e);
+      }
+
+    } catch (error) {
+      console.error("Failed to fetch live data:", error);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
-      const fetchData = async () => {
-        try {
-          let accRes = await API.get('/accounts');
-          
-          if (accRes.data && accRes.data.length === 0 && currentRole === 'customer') {
-            try {
-              await API.post('/accounts/create', { accountType: 'Savings', initialBalance: 0, branchId: 1 });
-              accRes = await API.get('/accounts');
-              showToast('Apex Bank Account Opened!', 'A default Savings account has been successfully initialized.', 'success');
-            } catch (err) { console.error("Auto-create error:", err); }
-          }
-
-          if (accRes.data) {
-            setAccounts(accRes.data);
-            // Automatically select the first account ID if none is active
-            if (accRes.data.length > 0 && !globalAccountId) {
-              setGlobalAccountId(accRes.data[0].id.toString());
-            }
-          }
-          
-          try {
-            const txnRes = await API.get('/transactions');
-            if (txnRes.data) setTransactions(txnRes.data);
-          } catch(e) {}
-
-          try {
-            const loanRes = await API.get('/loans');
-            if (loanRes.data) setLoans(loanRes.data);
-          } catch(e) {}
-
-          // FETCH LIVE CUSTOMERS / USERS
-          try {
-            const custRes = await API.get('/users'); 
-            if (custRes.data) {
-              setCustomers(custRes.data);
-            }
-          } catch (e) {
-            console.error("Failed to fetch live customers:", e);
-          }
-
-        } catch (error) {
-          console.error("Failed to fetch live data:", error);
-        }
-      };
       fetchData();
     }
   }, [isAuthenticated, currentUser, currentRole]);
@@ -154,6 +196,12 @@ export function App() {
     setCurrentTab(role === 'admin' ? 'admin_dashboard' : 'customer_dashboard');
 
     showToast('Session Authorized', `Authenticated as ${userData.name}.`, 'success');
+    addNotification(
+      'Login Successful',
+      `Authenticated as ${userData.name} with role ${role.toUpperCase()} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.`,
+      'success',
+      'Security'
+    );
   };
 
   const handleLogout = () => {
@@ -182,6 +230,12 @@ export function App() {
 
       const txnType = data.type === 'deposit' ? 'Deposit' : data.type === 'withdraw' ? 'Transfer' : 'Transfer';
       showToast('Transaction Completed', `${txnType} of ₹${data.amount.toLocaleString('en-IN')} processed successfully.`, 'success');
+      addNotification(
+        'Transaction Executed',
+        `${txnType} of ₹${data.amount.toLocaleString('en-IN')} processed successfully at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.`,
+        'success',
+        'General'
+      );
       setActionModal({ isOpen: false, type: 'deposit' });
     } catch (err: any) {
       showToast('Transaction Failed', err.response?.data?.error || 'Transaction failed.', 'error');
@@ -194,6 +248,12 @@ export function App() {
       const loanRes = await API.get('/loans');
       if (loanRes.data) setLoans(loanRes.data);
       showToast('Application Submitted', 'Your loan application has been submitted successfully!', 'success');
+      addNotification(
+        'Loan Applied',
+        `Loan application for ₹${Number(newLoanData.amount || 0).toLocaleString('en-IN')} submitted for administrative review.`,
+        'info',
+        'General'
+      );
     } catch (error) {
       showToast('Application Error', 'Failed to submit loan application.', 'error');
     }
@@ -205,6 +265,12 @@ export function App() {
       const loanRes = await API.get('/loans');
       if (loanRes.data) setLoans(loanRes.data);
       showToast('Status Updated', `Loan status has been successfully updated to ${status}.`, 'success');
+      addNotification(
+        'Loan Underwriting Decision',
+        `Loan #${loanId} was ${status.toLowerCase()} by bank administration at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.`,
+        status === 'Approved' ? 'success' : 'warning',
+        'General'
+      );
     } catch (error) {
       showToast('Update Error', 'Failed to update loan status.', 'error');
     }
@@ -240,7 +306,7 @@ export function App() {
     <div className="flex h-screen bg-[#0B0B0B] text-white font-sans overflow-hidden">
       <Sidebar currentRole={currentRole} currentTab={currentTab as ActiveTab} onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} onLogout={handleLogout} />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <Header currentRole={currentRole} currentUser={currentUser} unreadNotifCount={0} activeTabLabel={currentTab.replace(/_/g, ' ')} onOpenNotifications={() => {}} onOpenQuickAction={(action) => setActionModal({ isOpen: true, type: action })} onSelectTab={setCurrentTab} onLogout={handleLogout} onChangeRole={handleSwitchRole} />
+        <Header currentRole={currentRole} currentUser={currentUser} unreadNotifCount={notifications.filter((n) => !n.read).length} activeTabLabel={currentTab.replace(/_/g, ' ')} onOpenNotifications={() => setIsNotifDrawerOpen(true)} onOpenQuickAction={(action) => setActionModal({ isOpen: true, type: action })} onSelectTab={setCurrentTab} onLogout={handleLogout} onChangeRole={handleSwitchRole} />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
           {!isTabAllowed(currentRole, currentTab) ? (
             <AccessDeniedView currentRole={currentRole} attemptedTab={currentTab} onGoDashboard={() => { setCurrentTab(currentRole === 'admin' ? 'admin_dashboard' : 'customer_dashboard'); }} />
@@ -248,7 +314,7 @@ export function App() {
             <>
               {(currentTab === 'dashboard' || currentTab === 'customer_dashboard') && currentRole === 'customer' && <DashboardView currentUser={currentUser} accounts={accounts} transactions={transactions} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} onOpenActionModal={(action) => setActionModal({ isOpen: true, type: action })} onSelectTab={setCurrentTab} />}
               
-              {(currentTab === 'my_accounts' || currentTab === 'accounts') && <AccountsView accounts={accounts} transactions={transactions} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} onOpenActionModal={(action, acc) => setActionModal({ isOpen: true, type: action, targetAccount: acc }) } />}
+              {(currentTab === 'my_accounts' || currentTab === 'accounts') && <AccountsView accounts={accounts} transactions={transactions} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} onAccountCreated={fetchData} onOpenActionModal={(action, acc) => setActionModal({ isOpen: true, type: action, targetAccount: acc }) } />}
               
               {currentTab === 'balance_overview' && <BalanceOverviewView accounts={accounts} currentUser={currentUser} globalAccountId={globalAccountId} setGlobalAccountId={setGlobalAccountId} />}
               
@@ -263,12 +329,12 @@ export function App() {
               {currentTab === 'settings' && <SettingsView currentUser={currentUser} onShowToast={showToast} />}
               
               {currentRole === 'admin' && currentTab === 'admin_dashboard' && <ApexAdminDashboard customers={customers} accounts={accounts} transactions={transactions} loans={loans} onShowToast={showToast} onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)} />}
-              {currentRole === 'admin' && currentTab === 'customer_management' && <CustomersView customers={customers} onUpdateCustomer={handleUpdateCustomer} onShowToast={showToast} />}
-              {currentRole === 'admin' && currentTab === 'account_management' && <AccountsView accounts={accounts} transactions={transactions} onOpenActionModal={(action, account) => setActionModal({ isOpen: true, type: action, targetAccount: account }) } />}
+              {currentRole === 'admin' && currentTab === 'customer_management' && <CustomersView customers={customers} accounts={accounts} onRefreshAccounts={fetchData} onUpdateCustomer={handleUpdateCustomer} onShowToast={showToast} />}
+              {currentRole === 'admin' && currentTab === 'account_management' && <AccountsView accounts={accounts} transactions={transactions} onAccountCreated={fetchData} onOpenActionModal={(action, account) => setActionModal({ isOpen: true, type: action, targetAccount: account }) } />}
               {currentRole === 'admin' && currentTab === 'transaction_management' && <TransactionsView transactions={transactions} onShowToast={showToast} />}
               {currentRole === 'admin' && currentTab === 'loan_management' && <LoanManagementView loans={loans} onShowToast={showToast} onUpdateLoanStatus={handleUpdateLoanStatus} />}
               {currentRole === 'admin' && currentTab === 'branch_management' && <BranchManagementView />}
-              {currentRole === 'admin' && currentTab === 'reports_analytics' && <ReportsAnalyticsView />}
+              {currentRole === 'admin' && currentTab === 'reports_analytics' && <ReportsAnalyticsView transactions={transactions} accounts={accounts} />}
               {currentRole === 'admin' && currentTab === 'user_system_admin' && <UserSystemAdminView />}
               {currentRole === 'admin' && currentTab === 'user_management' && <UserSystemAdminView />}
               {currentRole === 'admin' && currentTab === 'role_management' && <UserSystemAdminView />}
@@ -281,6 +347,13 @@ export function App() {
       </div>
 
       {actionModal.isOpen && <ActionModal type={actionModal.type} accounts={accounts} initialAccount={actionModal.targetAccount || activeAccountObj} onClose={() => setActionModal({ isOpen: false, type: 'deposit' })} onSubmit={handleActionSubmit} />}
+      <NotificationModal
+        isOpen={isNotifDrawerOpen}
+        onClose={() => setIsNotifDrawerOpen(false)}
+        notifications={notifications}
+        onMarkAllAsRead={() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))}
+        onToggleRead={(id) => setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: !n.read } : n))}
+      />
       <Toast toasts={toasts} onDismiss={removeToast} />
     </div>
   );

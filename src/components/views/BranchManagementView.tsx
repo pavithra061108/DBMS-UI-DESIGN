@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Building2,
   Search,
@@ -14,6 +14,7 @@ import {
   ArrowUpDown,
   Activity,
 } from 'lucide-react';
+import API from '../../services/api';
 
 interface Branch {
   id: number;
@@ -38,43 +39,13 @@ type BranchForm = {
 const initialBranches: Branch[] = [
   {
     id: 1,
-    name: 'Amritapuri Main Branch',
-    code: 'APX001',
-    location: 'Amritapuri, Kerala',
-    manager: 'Rahul Sharma',
-    customers: 1240,
-    deposits: 12500000,
+    name: 'Apex Main Branch',
+    code: 'APEX0000001',
+    location: 'Main Financial Hub, Mumbai',
+    manager: 'Branch Manager',
+    customers: 6,
+    deposits: 224294,
     status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Kochi Branch',
-    code: 'APX002',
-    location: 'Kochi, Kerala',
-    manager: 'Priya Nair',
-    customers: 980,
-    deposits: 9800000,
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'Bengaluru Branch',
-    code: 'APX003',
-    location: 'Bengaluru, Karnataka',
-    manager: 'Arjun Reddy',
-    customers: 1560,
-    deposits: 18700000,
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Hyderabad Branch',
-    code: 'APX004',
-    location: 'Hyderabad, Telangana',
-    manager: 'Sneha Rao',
-    customers: 760,
-    deposits: 7200000,
-    status: 'Inactive',
   },
 ];
 
@@ -104,6 +75,31 @@ export const BranchManagementView: React.FC = () => {
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [form, setForm] = useState<BranchForm>(emptyForm);
   const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await API.get('/branches');
+        if (res.data && res.data.length > 0) {
+          setBranches(
+            res.data.map((b: any) => ({
+              id: Number(b.id),
+              name: b.name,
+              code: b.code,
+              location: b.location,
+              manager: b.manager || 'Branch Manager',
+              customers: Number(b.customers || 0),
+              deposits: Number(b.deposits || 0),
+              status: (b.status === 'Inactive' ? 'Inactive' : 'Active') as 'Active' | 'Inactive',
+            }))
+          );
+        }
+      } catch (err) {
+        console.error('Failed to load branches from DB:', err);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   const activeBranches = branches.filter((branch) => branch.status === 'Active').length;
   const inactiveBranches = branches.length - activeBranches;

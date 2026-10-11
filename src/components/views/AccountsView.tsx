@@ -51,6 +51,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAccountType, setNewAccountType] = useState('Savings');
   const [isCreating, setIsCreating] = useState(false);
+  const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
 
   const activeAccounts = accounts.filter(
     (account) => account.status.toLowerCase() === 'active'
@@ -61,7 +62,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   ).length;
 
   const pendingAccounts = accounts.filter(
-    (account) => account.status.toLowerCase() === 'pending'
+    (account) => account.status.toLowerCase() === 'deactivation requested' || account.status.toLowerCase() === 'pending'
   ).length;
 
   const filteredAccounts = accounts.filter((account) => {
@@ -130,6 +131,28 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     }
   };
 
+  const handleRequestDeactivation = async (acc: BankAccount) => {
+    const confirmDeactivation = window.confirm(
+      `Are you sure you want to request deactivation for account ${acc.accountNumber}? This will be sent to the bank admin for review.`
+    );
+    if (!confirmDeactivation) return;
+
+    try {
+      setDeactivatingId(acc.id.toString());
+      await API.patch(`/accounts/${acc.id}/status`, { status: 'Deactivation Requested' });
+      alert('Deactivation request sent successfully! A bank admin will review your request.');
+      if (selectedAccount && selectedAccount.id === acc.id) {
+        setSelectedAccount((prev) => prev ? { ...prev, status: 'Deactivation Requested' } : null);
+      }
+      if (onAccountCreated) onAccountCreated();
+    } catch (err: any) {
+      console.error('Error requesting account deactivation:', err);
+      alert(err.response?.data?.error || 'Failed to submit deactivation request.');
+    } finally {
+      setDeactivatingId(null);
+    }
+  };
+
   if (selectedAccount) {
     const acc = selectedAccount;
 
@@ -159,19 +182,43 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               </p>
             </div>
 
-            <span
-              className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase ${
-                acc.status.toLowerCase() === 'active'
-                  ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400'
-                  : acc.status.toLowerCase() === 'frozen'
-                  ? 'border-rose-500/30 bg-rose-500/15 text-rose-400'
-                  : 'border-amber-500/30 bg-amber-500/15 text-amber-400'
-              }`}
-            >
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              {acc.status}
-            </span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <span
+                className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold uppercase ${
+                  acc.status.toLowerCase() === 'active'
+                    ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400'
+                    : acc.status.toLowerCase() === 'deactivation requested'
+                    ? 'border-amber-500/30 bg-amber-500/15 text-amber-400'
+                    : 'border-rose-500/30 bg-rose-500/15 text-rose-400'
+                }`}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {acc.status}
+              </span>
+
+              {acc.status.toLowerCase() === 'active' && (
+                <button
+                  type="button"
+                  disabled={deactivatingId === acc.id.toString()}
+                  onClick={() => handleRequestDeactivation(acc)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 px-3 py-1.5 text-xs font-bold text-rose-400 transition"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {deactivatingId === acc.id.toString() ? 'Requesting...' : 'Request Deactivation'}
+                </button>
+              )}
+            </div>
           </div>
+
+          {acc.status.toLowerCase() === 'deactivation requested' && (
+            <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-300 flex items-center gap-3">
+              <Clock className="h-5 w-5 shrink-0 text-amber-400" />
+              <div>
+                <p className="font-bold">Deactivation Request Under Review</p>
+                <p className="text-amber-300/80 mt-0.5">Your request to deactivate this account has been forwarded to bank administration for approval.</p>
+              </div>
+            </div>
+          )}
 
           <div className="mt-7 rounded-2xl border border-slate-700 bg-gradient-to-br from-[#0F172A] to-slate-900 p-6">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -278,16 +325,25 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredAccounts.map((acc) => (
-          <button
+          <div
             key={acc.id}
-            type="button"
-            onClick={() => openAccount(acc)}
-            className="flex cursor-pointer flex-col justify-between rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 text-left shadow-xl transition-all hover:-translate-y-1 hover:border-[#3B82F6]/70"
+            className="flex flex-col justify-between rounded-3xl border border-slate-700/80 bg-[#1E293B] p-6 text-left shadow-xl transition-all hover:border-[#3B82F6]/70"
           >
             <div className="w-full">
               <div className="mb-4 flex items-center justify-between gap-2">
                 <span className="rounded-full border border-[#3B82F6]/30 bg-[#3B82F6]/20 px-3 py-1 text-xs font-bold text-[#60A5FA]">
                   {acc.type}
+                </span>
+                <span
+                  className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                    acc.status.toLowerCase() === 'active'
+                      ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-400'
+                      : acc.status.toLowerCase() === 'deactivation requested'
+                      ? 'border-amber-500/30 bg-amber-500/15 text-amber-400'
+                      : 'border-rose-500/30 bg-rose-500/15 text-rose-400'
+                  }`}
+                >
+                  {acc.status}
                 </span>
               </div>
               <h3 className="mb-1 text-lg font-bold text-white">{acc.customerName}</h3>
@@ -296,16 +352,46 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 <span className="block text-[10px] font-semibold uppercase text-slate-400">Account Number</span>
                 <span className="break-all font-mono text-sm font-extrabold text-white">{acc.accountNumber}</span>
               </div>
-              <div className="mb-6">
+              <div className="mb-4">
                 <span className="text-xs font-semibold uppercase text-slate-400">Current Balance</span>
                 <p className="mt-0.5 text-2xl font-black text-emerald-400">{money(acc.balance, acc.currency)}</p>
               </div>
+
+              {acc.status.toLowerCase() === 'active' && (
+                <button
+                  type="button"
+                  disabled={deactivatingId === acc.id.toString()}
+                  onClick={() => handleRequestDeactivation(acc)}
+                  className="mb-4 w-full py-2 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition flex items-center justify-center gap-2"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {deactivatingId === acc.id.toString() ? 'Submitting...' : 'Request Deactivation'}
+                </button>
+              )}
+              {acc.status.toLowerCase() === 'deactivation requested' && (
+                <div className="mb-4 py-2 px-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-medium flex items-center justify-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  <span>Deactivation Pending Admin Review</span>
+                </div>
+              )}
+              {acc.status.toLowerCase() === 'deactivated' && (
+                <div className="mb-4 py-2 px-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400 text-xs font-medium flex items-center justify-center gap-1.5">
+                  <XCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span>Account Deactivated</span>
+                </div>
+              )}
             </div>
             <div className="flex w-full items-center justify-between border-t border-slate-700/60 pt-4">
-              <span className="text-xs font-bold text-[#60A5FA]">View account details</span>
-              <Eye className="h-4 w-4 text-[#60A5FA]" />
+              <button
+                type="button"
+                onClick={() => openAccount(acc)}
+                className="flex items-center justify-between w-full text-xs font-bold text-[#60A5FA] hover:text-blue-300 transition"
+              >
+                <span>View account details</span>
+                <Eye className="h-4 w-4 text-[#60A5FA]" />
+              </button>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 
