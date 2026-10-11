@@ -3,9 +3,9 @@ const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-// Register a new Customer
+// Register a new Customer or Bank Admin
 exports.registerCustomer = async (req, res) => {
-    const { name, email, phone, password, address, city, dob } = req.body;
+    const { name, email, phone, password, address, city, dob, role } = req.body;
 
     try {
         // 1. Check if user already exists
@@ -18,31 +18,35 @@ exports.registerCustomer = async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+        // Determine target role (Admin vs Customer)
+        const targetRole = (role && role.toLowerCase() === 'admin') ? 'Admin' : 'Customer';
+
         // 3. Start a PostgreSQL transaction
         await pool.query('BEGIN');
 
         // 4. Insert into the main "User" table
         const userResult = await pool.query(
             `INSERT INTO "User" (Name, Email, Phone, Password, Role) 
-             VALUES ($1, $2, $3, $4, 'Customer') RETURNING UserID`,
-            [name, email, phone, hashedPassword]
+             VALUES ($1, $2, $3, $4, $5) RETURNING UserID`,
+            [name, email, phone, hashedPassword, targetRole]
         );
         
         const newUserId = userResult.rows[0].userid;
 
-        // 5. Insert into the specialized "Customer" table
+        // 5. Insert into specialized Customer table
         await pool.query(
             `INSERT INTO Customer (UserID, Address, City, DateOfBirth) 
-             VALUES ($1, $2, $3, $4)`,
-            [newUserId, address, city, dob]
+             VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
+            [newUserId, address || (targetRole === 'Admin' ? 'Bank Headquarters' : 'Default Address'), city || 'Mumbai', dob || '1990-01-01']
         );
 
         // 6. Commit transaction if everything succeeded
         await pool.query('COMMIT');
 
         res.status(201).json({ 
-            message: 'Customer registered successfully!', 
-            userId: newUserId 
+            message: `${targetRole === 'Admin' ? 'Bank Admin' : 'Customer'} account created successfully!`, 
+            userId: newUserId,
+            role: targetRole
         });
 
     } catch (error) {
@@ -72,11 +76,15 @@ exports.loginUser = async (req, res) => {
         }
 
         // 3. Enforce strict role separation between Customer and Admin
-        if (requiredRole && user.role.toLowerCase() !== requiredRole.toLowerCase()) {
-            const roleName = user.role.toLowerCase() === 'admin' ? 'Bank Administrator' : 'Customer';
-            const portalName = requiredRole.toLowerCase() === 'admin' ? 'Bank Admin Portal' : 'Customer Portal';
+        const dbRole = (user.role || '').toLowerCase();
+        const reqRole = (requiredRole || '').toLowerCase();
+
+        if (reqRole && dbRole !== reqRole) {
+            const roleName = dbRole === 'admin' ? 'Bank Admin' : 'Customer';
+            const allowedPortal = dbRole === 'admin' ? 'Bank Admin Portal' : 'Customer Portal';
+            const portalName = reqRole === 'admin' ? 'Bank Admin Portal' : 'Customer Portal';
             return res.status(403).json({
-                error: `Access Denied: This account is registered as a ${roleName}. You cannot log in through the ${portalName}.`
+                error: `Access Denied: This account was created as a ${roleName}. You can only log in through the ${allowedPortal}, not the ${portalName}.`
             });
         }
 

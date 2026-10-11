@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, User, Mail, Phone, MapPin, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, User, Mail, Phone, MapPin, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, ShieldAlert } from 'lucide-react';
 import API from '../../services/api'; // Connected to live backend
 
 interface RegisterViewProps {
@@ -13,6 +13,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   onNavigateLogin,
   onNavigateLanding,
 }) => {
+  const [selectedRole, setSelectedRole] = useState<'customer' | 'admin'>('customer');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -34,7 +35,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
     if (password !== confirmPassword) return setErrorMessage('Passwords do not match.');
 
     try {
-      // Send the data to your PostgreSQL Backend!
+      // Send the data to your PostgreSQL Backend with target role!
       await API.post('/auth/register', {
         name: fullName,
         email: email,
@@ -42,10 +43,15 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
         address: address,
         city: 'City (Default)',
         dob: '1990-01-01',
-        password: password
+        password: password,
+        role: selectedRole === 'admin' ? 'Admin' : 'Customer',
       });
 
-      setSuccessMessage('Account registered successfully! You can now log in.');
+      setSuccessMessage(
+        selectedRole === 'admin'
+          ? 'Bank Admin account created successfully! You can only log in through the Bank Admin portal.'
+          : 'Customer account created successfully! You can only log in through the Customer portal.'
+      );
       setTimeout(() => {
         onRegisterSuccess();
         onNavigateLogin();
@@ -77,8 +83,55 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
       <main className="relative z-10 max-w-xl mx-auto w-full my-auto py-6">
         <div className="bg-[#151515] border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl glass-panel glow-primary">
           <div className="text-center mb-6 space-y-1">
-            <h1 className="text-2xl font-extrabold text-white">Open Customer Account</h1>
-            <p className="text-xs text-slate-400">Register securely with your database.</p>
+            <h1 className="text-2xl font-extrabold text-white">
+              {selectedRole === 'admin' ? 'Create Bank Admin Account' : 'Open Customer Account'}
+            </h1>
+            <p className="text-xs text-slate-400">
+              {selectedRole === 'admin'
+                ? 'Registered as Bank Admin — authorized to log in only via Bank Admin portal.'
+                : 'Registered as Customer — authorized to log in only via Customer portal.'}
+            </p>
+          </div>
+
+          {/* Account Role Selector */}
+          <div className="mb-6 space-y-2">
+            <label className="block text-xs font-semibold text-slate-300">Select Registration Role</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedRole('customer')}
+                className={`p-3.5 rounded-xl text-xs font-semibold flex flex-col items-center gap-1.5 transition border ${
+                  selectedRole === 'customer'
+                    ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30 glow-primary'
+                    : 'bg-[#0B0B0B] text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <User className="w-4 h-4" />
+                <span>Customer Account</span>
+                <span className="text-[10px] opacity-80">Customer Portal Only</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRole('admin')}
+                className={`p-3.5 rounded-xl text-xs font-semibold flex flex-col items-center gap-1.5 transition border ${
+                  selectedRole === 'admin'
+                    ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-600/30 glow-primary'
+                    : 'bg-[#0B0B0B] text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                <ShieldAlert className="w-4 h-4" />
+                <span>Bank Admin Account</span>
+                <span className="text-[10px] opacity-80">Admin Portal Only</span>
+              </button>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-300 text-center">
+              {selectedRole === 'admin' ? (
+                <span>⚠️ <strong>Bank Admin accounts</strong> can only log in through the <strong>Bank Admin</strong> portal.</span>
+              ) : (
+                <span>ℹ️ <strong>Customer accounts</strong> can only log in through the <strong>Customer</strong> portal.</span>
+              )}
+            </div>
           </div>
 
           {errorMessage && (

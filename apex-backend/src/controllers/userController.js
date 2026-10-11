@@ -50,19 +50,21 @@ exports.createUser = async (req, res) => {
     const pwd = password || 'password123';
     const hashedPassword = await bcrypt.hash(pwd, saltRounds);
 
+    const userRole = (role && role.toLowerCase() === 'admin') ? 'Admin' : 'Customer';
+
     await pool.query('BEGIN');
     const newUser = await pool.query(
       `INSERT INTO "User" (Name, Email, Phone, Password, Role) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [name, email, phone || '9999999999', hashedPassword, role || 'Customer']
+      [name, email, phone || '9999999999', hashedPassword, userRole]
     );
 
     const newUserId = newUser.rows[0].userid;
 
     await pool.query(
       `INSERT INTO Customer (UserID, Address, City, DateOfBirth, KYCStatus) 
-       VALUES ($1, $2, $3, CURRENT_DATE, 'Verified')`,
-      [newUserId, address || 'Default Address', city || 'Mumbai']
+       VALUES ($1, $2, $3, CURRENT_DATE, 'Verified') ON CONFLICT DO NOTHING`,
+      [newUserId, address || (userRole === 'Admin' ? 'Bank Headquarters' : 'Default Address'), city || 'Mumbai']
     );
 
     await pool.query('COMMIT');

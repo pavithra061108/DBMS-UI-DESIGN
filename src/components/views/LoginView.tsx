@@ -86,7 +86,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
       const realRole = (response.data.user.role || 'customer').toLowerCase() as UserRole;
       if (realRole !== selectedRole) {
         setLoggingIn(false);
-        setErrorMessage(`Access Denied: This account is registered as ${response.data.user.role}. You cannot log in through the ${selectedRole === 'admin' ? 'Bank Admin' : 'Customer'} portal.`);
+        const registeredRole = realRole === 'admin' ? 'Bank Admin' : 'Customer';
+        const allowedPortal = realRole === 'admin' ? 'Bank Admin Portal' : 'Customer Portal';
+        const attemptedPortal = selectedRole === 'admin' ? 'Bank Admin Portal' : 'Customer Portal';
+        setErrorMessage(`Access Denied: This account was created as a ${registeredRole}. You can only log in through the ${allowedPortal}, not the ${attemptedPortal}.`);
         return;
       }
 
@@ -158,7 +161,9 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     onClick={() => handleRoleSelect(role)}
                     className={`p-4 rounded-xl text-xs font-semibold flex flex-col items-center gap-2 transition border ${
                       isSelected
-                        ? 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30 glow-primary'
+                        ? role === 'admin'
+                          ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-600/30 glow-primary'
+                          : 'bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30 glow-primary'
                         : 'bg-[#0B0B0B] text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800'
                     }`}
                   >
@@ -167,6 +172,14 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   </button>
                 );
               })}
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-300 text-center">
+              {selectedRole === 'admin' ? (
+                <span>⚡ <strong>Bank Admin Portal</strong>: Only accounts created as <strong>Bank Admin</strong> can log in here.</span>
+              ) : (
+                <span>🛡️ <strong>Customer Portal</strong>: Only accounts created as <strong>Customer</strong> can log in here.</span>
+              )}
             </div>
           </div>
 
