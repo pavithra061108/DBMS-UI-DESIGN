@@ -111,3 +111,116 @@ exports.loginUser = async (req, res) => {
         res.status(500).json({ error: 'Server error during login' });
     }
 };
+
+// Change Password for logged in user (Admin or Customer)
+exports.changePassword = async (req, res) => {
+    const { userId, email, currentPassword, newPassword } = req.body;
+    const targetUserId = req.user?.userId || userId;
+    const targetEmail = req.user?.email || email;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Both current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    try {
+        let userResult;
+        if (targetUserId) {
+            userResult = await pool.query('SELECT * FROM "User" WHERE UserID = $1', [targetUserId]);
+        } else if (targetEmail) {
+            userResult = await pool.query('SELECT * FROM "User" WHERE Email = $1', [targetEmail]);
+        } else {
+            return res.status(400).json({ error: 'User identifier required' });
+        }
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User account not found' });
+        }
+
+        const user = userResult.rows[0];
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Current password does not match' });
+        }
+
+        const saltRounds = 10;
+        const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        await pool.query('UPDATE "User" SET Password = $1 WHERE UserID = $2', [hashedNewPassword, user.userid]);
+
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: 'Server error while updating password' });
+    }
+};
+
+// Update profile details for user (Admin or Customer)
+exports.updateProfile = async (req, res) => {
+    const { userId, email, name, phone, address, city } = req.body;
+    const targetUserId = req.user?.userId || userId;
+    const targetEmail = req.user?.email || email;
+
+    try {
+        let userResult;
+        if (targetUserId) {
+            userResult = await pool.query('SELECT * FROM "User" WHERE UserID = $1', [targetUserId]);
+        } else if (targetEmail) {
+            userResult = await pool.query('SELECT * FROM "User" WHERE Email = $1', [targetEmail]);
+        } else {
+            return res.status(400).json({ error: 'User identifier required' });
+        }
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: 'User account not found' });
+        }
+
+        const user = userResult.rows[0];
+
+        if (name || phone) {
+            await pool.query(
+                'UPDATE "User" SET Name = COALESCE($1, Name), Phone = COALESCE($2, Phone) WHERE UserID = $3',
+                [name || null, phone || null, user.userid]
+            );
+        }
+
+        if (address || city) {
+            await pool.query(
+                `INSERT INTO Customer (UserID, Address, City) 
+                 VALUES ($1, $2, $3) 
+                 ON CONFLICT (UserID) 
+                 DO UPDATE SET Address = COALESCE($2, Customer.Address), City = COALESCE($3, Customer.City)`,
+                [user.userid, address || null, city || null]
+            );
+        }
+
+        const updatedUserRes = await pool.query(
+            `SELECT u.UserID, u.Name, u.Email, u.Phone, u.Role, c.Address, c.City 
+             FROM "User" u 
+             LEFT JOIN Customer c ON u.UserID = c.UserID 
+             WHERE u.UserID = $1`,
+            [user.userid]
+        );
+
+        const updated = updatedUserRes.rows[0];
+
+        res.status(200).json({
+            message: 'Profile updated successfully',
+            user: {
+                id: updated.userid,
+                name: updated.name,
+                email: updated.email,
+                phone: updated.phone,
+                role: updated.role,
+                address: updated.address,
+                city: updated.city
+            }
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Server error while updating profile' });
+    }
+};

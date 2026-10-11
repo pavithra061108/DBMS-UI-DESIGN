@@ -357,7 +357,17 @@ export function App() {
               
               {currentTab === 'loan_status' && <LoanStatusView loans={loans} currentUser={currentUser} onShowToast={showToast} onApplyLoan={handleApplyLoan} onRefreshLoans={fetchData} />}
               {currentTab === 'profile' && <ProfileView currentUser={currentUser} onUpdateProfile={handleUpdateCustomer} onShowToast={showToast} />}
-              {currentTab === 'settings' && <SettingsView currentUser={currentUser} onShowToast={showToast} />}
+              {currentTab === 'settings' && (
+                <SettingsView
+                  currentUser={currentUser}
+                  currentRole={currentRole}
+                  onShowToast={showToast}
+                  onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)}
+                  onUpdateUser={handleUpdateCustomer}
+                  onLogout={handleLogout}
+                  addNotification={addNotification}
+                />
+              )}
               
               {currentRole === 'admin' && currentTab === 'admin_dashboard' && <ApexAdminDashboard customers={customers} accounts={accounts} transactions={transactions} loans={loans} onShowToast={showToast} onSelectTab={(tab) => setCurrentTab(tab as NavigationTab)} />}
               {currentRole === 'admin' && currentTab === 'customer_management' && <CustomersView customers={customers} accounts={accounts} onRefreshAccounts={fetchData} onUpdateCustomer={handleUpdateCustomer} onShowToast={showToast} />}
