@@ -292,7 +292,7 @@ export const LoanStatusView: React.FC<LoanStatusViewProps> = ({
                   <option value="Business Expansion">Business Expansion</option>
                 </select>
               </Field>
-              <Field label="Loan Amount (USD)">
+              <Field label="Loan Amount (₹ INR)">
                 <input type="number" min="1000" step="500" required value={amount} onChange={(e) => setAmount(e.target.value)} className={inputClass} />
               </Field>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

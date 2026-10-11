@@ -42,6 +42,7 @@ type UserForm = {
   username: string;
   email: string;
   role: UserRole;
+  branchId: string;
 };
 
 const INITIAL_USERS: SystemUser[] = [
@@ -92,10 +93,12 @@ const EMPTY_FORM: UserForm = {
   username: '',
   email: '',
   role: 'Customer',
+  branchId: '4',
 };
 
 export const UserSystemAdminView: React.FC<{ accounts?: any[] }> = () => {
   const [users, setUsers] = useState<SystemUser[]>(INITIAL_USERS);
+  const [branches, setBranches] = useState<{ id: number; name: string; code: string; location: string }[]>([]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<'All' | UserRole>('All');
   const [statusFilter, setStatusFilter] = useState<'All' | UserStatus>('All');
@@ -106,6 +109,21 @@ export const UserSystemAdminView: React.FC<{ accounts?: any[] }> = () => {
   const [formError, setFormError] = useState('');
   const [notice, setNotice] = useState('');
   const [menuUserId, setMenuUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await API.get('/branches');
+        if (res.data && res.data.length > 0) {
+          setBranches(res.data);
+          setForm((prev) => ({ ...prev, branchId: String(res.data[0].id) }));
+        }
+      } catch (err) {
+        console.warn('Could not fetch branches:', err);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -174,7 +192,7 @@ export const UserSystemAdminView: React.FC<{ accounts?: any[] }> = () => {
     }
 
     try {
-      await API.post('/users/create', { name, email, role: form.role });
+      await API.post('/users/create', { name, email, role: form.role, branchId: form.branchId });
     } catch (e) {
       console.warn('API user creation note:', e);
     }
@@ -446,6 +464,23 @@ export const UserSystemAdminView: React.FC<{ accounts?: any[] }> = () => {
               <select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value as UserRole })} className={inputClass}>
                 <option value="Customer">Customer</option>
                 <option value="Admin">Admin</option>
+              </select>
+            </FormField>
+            <FormField label="Assigned Bank Branch">
+              <select
+                value={form.branchId}
+                onChange={(event) => setForm({ ...form, branchId: event.target.value })}
+                className={inputClass}
+              >
+                {branches.length === 0 ? (
+                  <option value="4">Apex Main Branch - Mumbai (APEX0000001)</option>
+                ) : (
+                  branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name} ({b.code}) — {b.location}
+                    </option>
+                  ))
+                )}
               </select>
             </FormField>
             {form.role === 'Admin' && <p className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-5 text-amber-300">You are assigning broad administrative access. Only do this for a trusted user. This demo does not create login credentials.</p>}

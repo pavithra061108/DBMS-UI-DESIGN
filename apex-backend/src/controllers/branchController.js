@@ -10,12 +10,17 @@ exports.getBranches = async (req, res) => {
                 b.IFSCCode AS code,
                 b.Address || ', ' || b.City AS location,
                 'Branch Manager' AS manager,
-                COUNT(DISTINCT a.CustomerID)::int AS customers,
-                COALESCE(SUM(a.Balance), 0)::numeric AS deposits,
+                (
+                    SELECT COUNT(DISTINCT cid)
+                    FROM (
+                        SELECT UserID AS cid FROM Customer WHERE BranchID = b.BranchID
+                        UNION
+                        SELECT CustomerID AS cid FROM Account WHERE BranchID = b.BranchID
+                    ) sub
+                )::int AS customers,
+                COALESCE((SELECT SUM(Balance) FROM Account WHERE BranchID = b.BranchID), 0)::numeric AS deposits,
                 CASE WHEN b.IsActive = false THEN 'Inactive' ELSE 'Active' END AS status
             FROM Branch b
-            LEFT JOIN Account a ON b.BranchID = a.BranchID
-            GROUP BY b.BranchID, b.BranchName, b.IFSCCode, b.Address, b.City, b.IsActive
             ORDER BY b.BranchID ASC
         `;
         const result = await pool.query(query);

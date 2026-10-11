@@ -183,16 +183,16 @@ export const TellerDepositView: React.FC<{
   const [selectedAccId, setSelectedAccId] = useState<string>(accounts[0]?.id || '');
   const [depositAmount, setDepositAmount] = useState<number>(1000);
 
-  // Cash Denomination breakdown state
-  const [notes100, setNotes100] = useState<number>(8);
-  const [notes50, setNotes50] = useState<number>(3);
-  const [notes20, setNotes20] = useState<number>(2);
-  const [notes10, setNotes10] = useState<number>(1);
-  const [notes5, setNotes5] = useState<number>(0);
-  const [notes1, setNotes1] = useState<number>(0);
+  // Cash Denomination breakdown state (Indian Rupee Denominations)
+  const [notes500, setNotes500] = useState<number>(2);
+  const [notes200, setNotes200] = useState<number>(0);
+  const [notes100, setNotes100] = useState<number>(0);
+  const [notes50, setNotes50] = useState<number>(0);
+  const [notes20, setNotes20] = useState<number>(0);
+  const [notes10, setNotes10] = useState<number>(0);
 
   const calculatedTotal =
-    notes100 * 100 + notes50 * 50 + notes20 * 20 + notes10 * 10 + notes5 * 5 + notes1 * 1;
+    notes500 * 500 + notes200 * 200 + notes100 * 100 + notes50 * 50 + notes20 * 20 + notes10 * 10;
 
   const selectedAcc = accounts.find((a) => a.id === selectedAccId) || accounts[0];
   const selectedCustomer = customers.find((c) => c.name === selectedAcc?.customerName) || customers[0];
@@ -215,7 +215,7 @@ export const TellerDepositView: React.FC<{
     if (calculatedTotal !== depositAmount) {
       onShowToast(
         'Denomination Mismatch',
-        `Physical cash sum ($${calculatedTotal}) does not match deposit input ($${depositAmount}).`,
+        `Physical cash sum (₹${calculatedTotal.toLocaleString('en-IN')}) does not match deposit input (₹${depositAmount.toLocaleString('en-IN')}).`,
         'warning'
       );
       return;
@@ -227,7 +227,7 @@ export const TellerDepositView: React.FC<{
 
     onShowToast(
       'Deposit Credit Processed',
-      `$${depositAmount.toLocaleString()} USD credited to Account #${selectedAcc?.accountNumber}. Cash ledger updated.`,
+      `₹${depositAmount.toLocaleString('en-IN')} INR credited to Account #${selectedAcc?.accountNumber}. Cash ledger updated.`,
       'success'
     );
   };
@@ -285,7 +285,7 @@ export const TellerDepositView: React.FC<{
               >
                 {filteredAccounts.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.customerName} — {a.type} (#{a.accountNumber}) — Bal: ${a.balance.toLocaleString()} USD
+                    {a.customerName} — {a.type} (#{a.accountNumber}) — Bal: ₹{a.balance.toLocaleString('en-IN')} INR
                   </option>
                 ))}
               </select>
@@ -313,7 +313,7 @@ export const TellerDepositView: React.FC<{
 
                 <div className="text-right font-mono">
                   <p className="text-[10px] text-slate-400 uppercase">Available Balance</p>
-                  <p className="text-lg font-extrabold text-emerald-400">${selectedAcc.balance.toLocaleString()} USD</p>
+                  <p className="text-lg font-extrabold text-emerald-400">₹{selectedAcc.balance.toLocaleString('en-IN')} INR</p>
                 </div>
               </div>
             )}
@@ -326,7 +326,7 @@ export const TellerDepositView: React.FC<{
             </h2>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Declared Deposit Amount (USD)</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Declared Deposit Amount (₹ INR)</label>
               <input
                 type="number"
                 value={depositAmount}
@@ -337,10 +337,30 @@ export const TellerDepositView: React.FC<{
 
             {/* Cash Denominations Grid */}
             <div className="p-4 rounded-2xl bg-black/40 border border-slate-800 space-y-3">
-              <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Physical Cash Denomination Counter</p>
+              <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Physical Cash Denomination Counter (INR)</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-mono">
                 <div>
-                  <span className="text-slate-400">$100 Bills</span>
+                  <span className="text-slate-400">₹500 Notes</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={notes500}
+                    onChange={(e) => setNotes500(Number(e.target.value))}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <span className="text-slate-400">₹200 Notes</span>
+                  <input
+                    type="number"
+                    min={0}
+                    value={notes200}
+                    onChange={(e) => setNotes200(Number(e.target.value))}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <span className="text-slate-400">₹100 Notes</span>
                   <input
                     type="number"
                     min={0}
@@ -350,7 +370,7 @@ export const TellerDepositView: React.FC<{
                   />
                 </div>
                 <div>
-                  <span className="text-slate-400">$50 Bills</span>
+                  <span className="text-slate-400">₹50 Notes</span>
                   <input
                     type="number"
                     min={0}
@@ -360,7 +380,7 @@ export const TellerDepositView: React.FC<{
                   />
                 </div>
                 <div>
-                  <span className="text-slate-400">$20 Bills</span>
+                  <span className="text-slate-400">₹20 Notes</span>
                   <input
                     type="number"
                     min={0}
@@ -370,7 +390,7 @@ export const TellerDepositView: React.FC<{
                   />
                 </div>
                 <div>
-                  <span className="text-slate-400">$10 Bills</span>
+                  <span className="text-slate-400">₹10 Notes</span>
                   <input
                     type="number"
                     min={0}
@@ -379,32 +399,12 @@ export const TellerDepositView: React.FC<{
                     className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white mt-1"
                   />
                 </div>
-                <div>
-                  <span className="text-slate-400">$5 Bills</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={notes5}
-                    onChange={(e) => setNotes5(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white mt-1"
-                  />
-                </div>
-                <div>
-                  <span className="text-slate-400">$1 Bills</span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={notes1}
-                    onChange={(e) => setNotes1(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white mt-1"
-                  />
-                </div>
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs font-mono font-bold">
                 <span className="text-slate-300">Total Counted Cash Sum:</span>
                 <span className={calculatedTotal === depositAmount ? 'text-emerald-400' : 'text-rose-400 font-extrabold'}>
-                  ${calculatedTotal.toLocaleString()} USD {calculatedTotal !== depositAmount && `(Mismatch $${calculatedTotal - depositAmount})`}
+                  ₹{calculatedTotal.toLocaleString('en-IN')} INR {calculatedTotal !== depositAmount && `(Mismatch ₹${calculatedTotal - depositAmount})`}
                 </span>
               </div>
             </div>
@@ -433,7 +433,7 @@ export const TellerDepositView: React.FC<{
                   <p className="font-bold text-white font-sans">{t.senderName}</p>
                   <p className="text-[10px] text-slate-400">{t.referenceNumber} • {t.time}</p>
                 </div>
-                <span className="text-sm font-bold text-emerald-400">+${t.amount.toLocaleString()} USD</span>
+                <span className="text-sm font-bold text-emerald-400">+₹{t.amount.toLocaleString('en-IN')} INR</span>
               </div>
             ))}
           </div>
@@ -496,8 +496,8 @@ export const TellerWithdrawalView: React.FC<{
       return;
     }
 
-    if (amount > 10000 && !otpVerified) {
-      onShowToast('Withdrawal Limit Exceeded', 'Withdrawals over $10,000 require customer OTP identity verification.', 'warning');
+    if (amount > 50000 && !otpVerified) {
+      onShowToast('Withdrawal Limit Exceeded', 'Withdrawals over ₹50,000 require customer OTP identity verification.', 'warning');
       return;
     }
 
@@ -507,7 +507,7 @@ export const TellerWithdrawalView: React.FC<{
 
     onShowToast(
       'Withdrawal Executed',
-      `$${amount.toLocaleString()} USD debited from Account #${selectedAcc?.accountNumber}. Cash handed to customer.`,
+      `₹${amount.toLocaleString('en-IN')} INR debited from Account #${selectedAcc?.accountNumber}. Cash handed to customer.`,
       'success'
     );
   };
@@ -548,7 +548,7 @@ export const TellerWithdrawalView: React.FC<{
               >
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.customerName} — {a.type} (#{a.accountNumber}) — Bal: ${a.balance.toLocaleString()} USD
+                    {a.customerName} — {a.type} (#{a.accountNumber}) — Bal: ₹{a.balance.toLocaleString('en-IN')} INR
                   </option>
                 ))}
               </select>
@@ -562,13 +562,13 @@ export const TellerWithdrawalView: React.FC<{
                 </div>
                 <div className="text-right font-mono">
                   <p className="text-[10px] text-slate-400 uppercase">Available Balance</p>
-                  <p className="text-lg font-extrabold text-emerald-400">${selectedAcc.balance.toLocaleString()} USD</p>
+                  <p className="text-lg font-extrabold text-emerald-400">₹{selectedAcc.balance.toLocaleString('en-IN')} INR</p>
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Requested Withdrawal Amount (USD)</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Requested Withdrawal Amount (₹ INR)</label>
               <input
                 type="number"
                 value={amount}
@@ -647,7 +647,7 @@ export const TellerWithdrawalView: React.FC<{
                   <p className="font-bold text-white font-sans">{t.senderName}</p>
                   <p className="text-[10px] text-slate-400">{t.referenceNumber} • {t.time}</p>
                 </div>
-                <span className="text-sm font-bold text-rose-400">-${t.amount.toLocaleString()} USD</span>
+                <span className="text-sm font-bold text-rose-400">-₹{t.amount.toLocaleString('en-IN')} INR</span>
               </div>
             ))}
           </div>
@@ -693,18 +693,18 @@ export const TellerDailySummaryView: React.FC<{
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 shadow-md">
           <p className="text-xs text-slate-400 font-semibold">Total Counter Cash Received (Deposits)</p>
-          <p className="text-2xl font-black text-emerald-400 font-mono mt-1">+${totalDeposits.toLocaleString()} USD</p>
+          <p className="text-2xl font-black text-emerald-400 font-mono mt-1">+₹{totalDeposits.toLocaleString('en-IN')} INR</p>
         </div>
 
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 shadow-md">
           <p className="text-xs text-slate-400 font-semibold">Total Cash Disbursed (Withdrawals)</p>
-          <p className="text-2xl font-black text-rose-400 font-mono mt-1">-${totalWithdrawals.toLocaleString()} USD</p>
+          <p className="text-2xl font-black text-rose-400 font-mono mt-1">-₹{totalWithdrawals.toLocaleString('en-IN')} INR</p>
         </div>
 
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 shadow-md">
           <p className="text-xs text-slate-400 font-semibold">Net Vault Counter Balance Shift</p>
           <p className="text-2xl font-black text-blue-400 font-mono mt-1">
-            {netVaultPosition >= 0 ? '+' : ''}${netVaultPosition.toLocaleString()} USD
+            {netVaultPosition >= 0 ? '+' : ''}₹{netVaultPosition.toLocaleString('en-IN')} INR
           </p>
         </div>
       </div>
@@ -742,7 +742,7 @@ export const TellerDailySummaryView: React.FC<{
                       t.type === 'Deposit' ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                   >
-                    {t.type === 'Deposit' ? '+' : '-'}${t.amount.toLocaleString()} USD
+                    {t.type === 'Deposit' ? '+' : '-'}₹{t.amount.toLocaleString('en-IN')} INR
                   </td>
                 </tr>
               ))}
@@ -829,7 +829,7 @@ export const ChequeClearingView: React.FC<{
               </div>
               <div>
                 <p className="text-[10px] font-sans text-slate-400">Amount</p>
-                <p className="font-bold text-emerald-400">${item.amount.toLocaleString()} USD</p>
+                <p className="font-bold text-emerald-400">₹{item.amount.toLocaleString('en-IN')} INR</p>
               </div>
               <div>
                 <p className="text-[10px] font-sans text-slate-400">Account #</p>

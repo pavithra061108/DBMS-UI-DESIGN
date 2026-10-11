@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, User, Mail, Phone, MapPin, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, User, Mail, Phone, MapPin, Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ArrowRight, ShieldAlert, Building2 } from 'lucide-react';
 import API from '../../services/api'; // Connected to live backend
 
 interface RegisterViewProps {
@@ -7,6 +7,13 @@ interface RegisterViewProps {
   onNavigateLogin: (role?: 'customer' | 'admin', email?: string) => void;
   onNavigateLanding: () => void;
   initialRole?: 'customer' | 'admin';
+}
+
+interface BranchOption {
+  id: number;
+  name: string;
+  code: string;
+  location: string;
 }
 
 export const RegisterView: React.FC<RegisterViewProps> = ({
@@ -24,8 +31,26 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const [branches, setBranches] = useState<BranchOption[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | number>('');
+
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await API.get('/branches');
+        if (res.data && res.data.length > 0) {
+          setBranches(res.data);
+          setSelectedBranchId(res.data[0].id);
+        }
+      } catch (err) {
+        console.warn('Could not fetch branches in register form', err);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   useEffect(() => {
     if (initialRole) {
@@ -44,7 +69,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
 
     try {
       const targetRole = selectedRole === 'admin' ? 'Admin' : 'Customer';
-      // Send the data to your PostgreSQL Backend with target role!
+      // Send the data to your PostgreSQL Backend with target role and assigned branch!
       await API.post('/auth/register', {
         name: fullName,
         email: email,
@@ -54,6 +79,7 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
         dob: '1990-01-01',
         password: password,
         role: targetRole,
+        branchId: selectedBranchId,
       });
 
       setSuccessMessage(
@@ -235,6 +261,36 @@ export const RegisterView: React.FC<RegisterViewProps> = ({
                   <input required type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm your password" className="w-full bg-[#0B0B0B] border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono" />
                 </div>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">
+                {selectedRole === 'admin' ? 'Assigned Bank Branch (Administration)' : 'Home Branch (Primary Account Branch)'}
+              </label>
+              <div className="relative">
+                <Building2 className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                <select
+                  required
+                  value={selectedBranchId}
+                  onChange={(e) => setSelectedBranchId(e.target.value)}
+                  className="w-full bg-[#0B0B0B] border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-blue-500 text-xs"
+                >
+                  {branches.length === 0 ? (
+                    <option value="4">Apex Main Branch - Mumbai (APEX0000001)</option>
+                  ) : (
+                    branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code}) — {b.location}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">
+                {selectedRole === 'admin'
+                  ? 'Administrator credentials will be bound to this operational branch.'
+                  : 'Your initial accounts and records will be established under this regional branch.'}
+              </p>
             </div>
 
             {selectedRole === 'admin' ? (

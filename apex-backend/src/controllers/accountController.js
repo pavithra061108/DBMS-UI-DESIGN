@@ -2,22 +2,29 @@ const pool = require('../config/db');
 
 // Create a new Bank Account (Savings / Checking)
 exports.createAccount = async (req, res) => {
-    const { accountType, initialBalance } = req.body;
+    const { accountType, initialBalance, branchId } = req.body;
     const userId = req.user.userId; 
 
     try {
-        // 1. Ensure at least one Branch exists in the database
-        const branchCheck = await pool.query('SELECT BranchID FROM Branch LIMIT 1');
-        let targetBranchId;
-        
-        if (branchCheck.rows.length === 0) {
-            const newBranch = await pool.query(
-                `INSERT INTO Branch (BranchName, Address, City, IFSCCode) 
-                 VALUES ('Apex Main Branch', 'Main Financial Hub', 'Mumbai', 'APEX0000001') RETURNING BranchID`
-            );
-            targetBranchId = newBranch.rows[0].branchid;
-        } else {
-            targetBranchId = branchCheck.rows[0].branchid;
+        // 1. Resolve target Branch ID: explicit body -> customer profile -> fallback default
+        let targetBranchId = branchId ? parseInt(branchId, 10) : null;
+        if (!targetBranchId) {
+            const custRes = await pool.query('SELECT BranchID FROM Customer WHERE UserID = $1', [userId]);
+            if (custRes.rows.length > 0 && custRes.rows[0].branchid) {
+                targetBranchId = custRes.rows[0].branchid;
+            }
+        }
+        if (!targetBranchId) {
+            const branchCheck = await pool.query('SELECT BranchID FROM Branch WHERE IsActive = true ORDER BY BranchID ASC LIMIT 1');
+            if (branchCheck.rows.length > 0) {
+                targetBranchId = branchCheck.rows[0].branchid;
+            } else {
+                const newBranch = await pool.query(
+                    `INSERT INTO Branch (BranchName, Address, City, IFSCCode) 
+                     VALUES ('Apex Main Branch - Mumbai', 'Bandra-Kurla Complex', 'Mumbai', 'APEX0000001') RETURNING BranchID`
+                );
+                targetBranchId = newBranch.rows[0].branchid;
+            }
         }
 
         // 2. Generate unique Account Number and Insert Account with Minimum Balance (Rs 1,000)

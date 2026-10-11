@@ -414,13 +414,14 @@ body[data-theme="soft"],
 }
 
 /* ---------------------------------------------------
-   3. SHINY PLATINUM GLASS (Glossy Metallic Chrome & Diamond Cyan)
-   Glossy finish, specular top border shine, diamond cyan buttons
+   3. ROYAL AMETHYST & CRYSTAL PLATINUM GLASS
+   Deep obsidian violet background, crystalline glass cards,
+   radiant royal amethyst gradient buttons, specular sheens
    --------------------------------------------------- */
 html[data-theme="shiny"],
 body[data-theme="shiny"],
 [data-theme="shiny"] {
-  background: radial-gradient(circle at 50% 0%, #172233 0%, #0b121d 60%, #070b12 100%) !important;
+  background: radial-gradient(ellipse at 50% 0%, #1f0d3d 0%, #120726 50%, #0a0316 100%) !important;
   color: #FFFFFF !important;
 }
 
@@ -429,74 +430,74 @@ body[data-theme="shiny"],
 [data-theme="shiny"] .bg-\[\#0B0B0B\],
 [data-theme="shiny"] [class*="bg-[#0B0B0B]"],
 [data-theme="shiny"] main {
-  background: radial-gradient(circle at 50% 0%, #172233 0%, #0b121d 60%, #070b12 100%) !important;
+  background: radial-gradient(ellipse at 50% 0%, #1f0d3d 0%, #120726 50%, #0a0316 100%) !important;
   color: #FFFFFF !important;
 }
 
-/* Glossy Glass Cards & Panels with Specular Shine */
+/* Glossy Royal Amethyst Glass Cards & Panels with Specular Shine */
 [data-theme="shiny"] .bg-\[\#151515\],
 [data-theme="shiny"] [class*="bg-[#151515]"],
 [data-theme="shiny"] .glass-panel,
 [data-theme="shiny"] .glass-card {
-  background: linear-gradient(135deg, rgba(25, 36, 54, 0.88) 0%, rgba(12, 18, 30, 0.95) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+  background: linear-gradient(135deg, rgba(38, 17, 70, 0.78) 0%, rgba(18, 8, 36, 0.92) 100%) !important;
+  border: 1px solid rgba(192, 132, 252, 0.28) !important;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(233, 213, 255, 0.4) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
 }
 
-/* Glossy Metallic Sidebar */
+/* Glossy Amethyst Glass Sidebar */
 [data-theme="shiny"] aside#sidebar-navigation,
 [data-theme="shiny"] aside {
-  background: linear-gradient(180deg, #131c2d 0%, #080e18 100%) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.15), 4px 0 25px rgba(0, 0, 0, 0.5) !important;
+  background: linear-gradient(180deg, #1b0a34 0%, #0d041a 100%) !important;
+  border-right: 1px solid rgba(192, 132, 252, 0.25) !important;
+  box-shadow: inset -1px 0 0 rgba(192, 132, 252, 0.15), 4px 0 25px rgba(0, 0, 0, 0.6) !important;
 }
 
-/* Glossy Metallic Header */
+/* Glossy Amethyst Glass Header */
 [data-theme="shiny"] header#main-app-header,
 [data-theme="shiny"] header,
 [data-theme="shiny"] [class*="bg-[#0B0B0B]/90"] {
-  background: linear-gradient(180deg, rgba(24, 34, 52, 0.95) 0%, rgba(13, 19, 30, 0.95) 100%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.22) !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  background: linear-gradient(180deg, rgba(35, 16, 66, 0.95) 0%, rgba(18, 8, 36, 0.95) 100%) !important;
+  border-bottom: 1px solid rgba(192, 132, 252, 0.28) !important;
+  box-shadow: inset 0 1px 1px rgba(233, 213, 255, 0.35), 0 4px 20px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Inner Glossy Containers */
+/* Inner Glossy Amethyst Containers */
 [data-theme="shiny"] .bg-\[\#0D0D0D\],
 [data-theme="shiny"] [class*="bg-[#0D0D0D]"],
 [data-theme="shiny"] .bg-slate-900,
 [data-theme="shiny"] [class*="bg-slate-900"] {
-  background: linear-gradient(135deg, rgba(18, 26, 42, 0.9) 0%, rgba(10, 15, 26, 0.9) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(135deg, rgba(28, 12, 52, 0.88) 0%, rgba(14, 6, 28, 0.9) 100%) !important;
+  border: 1px solid rgba(192, 132, 252, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(233, 213, 255, 0.2) !important;
 }
 
 [data-theme="shiny"] .border-slate-800,
 [data-theme="shiny"] [class*="border-slate-800"],
 [data-theme="shiny"] .border-slate-700,
 [data-theme="shiny"] [class*="border-slate-700"] {
-  border-color: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(192, 132, 252, 0.22) !important;
 }
 
-/* Input Fields in Shiny Theme */
+/* Input Fields in Royal Amethyst Theme */
 [data-theme="shiny"] input,
 [data-theme="shiny"] select,
 [data-theme="shiny"] textarea {
-  background: linear-gradient(135deg, rgba(16, 24, 38, 0.95) 0%, rgba(9, 14, 24, 0.95) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: linear-gradient(135deg, rgba(26, 11, 48, 0.95) 0%, rgba(14, 6, 26, 0.95) 100%) !important;
+  border: 1px solid rgba(192, 132, 252, 0.3) !important;
   color: #FFFFFF !important;
 }
 
 [data-theme="shiny"] input:focus,
 [data-theme="shiny"] select:focus,
 [data-theme="shiny"] textarea:focus {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  border-color: #c084fc !important;
+  box-shadow: 0 0 15px rgba(192, 132, 252, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
   outline: none !important;
 }
 
-/* ALL PRIMARY BUTTONS in Shiny Theme (High-Gloss Diamond Cyan Gradient & Specular Top Reflection) */
+/* ALL PRIMARY BUTTONS in Royal Amethyst Theme (Lustrous Royal Amethyst Gradient & Crystal Sheen) */
 [data-theme="shiny"] .bg-blue-600,
 [data-theme="shiny"] .bg-purple-600,
 [data-theme="shiny"] .bg-emerald-600,
@@ -504,9 +505,9 @@ body[data-theme="shiny"],
 [data-theme="shiny"] [class*="bg-purple-600"],
 [data-theme="shiny"] [class*="bg-emerald-600"],
 [data-theme="shiny"] button[type="submit"] {
-  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0369a1 100%) !important;
+  background: linear-gradient(180deg, #c084fc 0%, #9333ea 50%, #7e22ce 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.6) !important;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.85), 0 4px 18px rgba(14, 165, 233, 0.55), 0 0 15px rgba(56, 189, 248, 0.45) !important;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.85), 0 4px 18px rgba(168, 85, 247, 0.55), 0 0 15px rgba(192, 132, 252, 0.45) !important;
   color: #FFFFFF !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7) !important;
   transition: all 0.2s ease !important;
@@ -520,10 +521,10 @@ body[data-theme="shiny"],
 [data-theme="shiny"] [class*="hover:bg-emerald-500"]:hover,
 [data-theme="shiny"] button[type="submit"]:hover {
   filter: brightness(1.2) !important;
-  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 1), 0 6px 26px rgba(56, 189, 248, 0.8) !important;
+  box-shadow: inset 0 1px 3px rgba(255, 255, 255, 1), 0 6px 26px rgba(192, 132, 252, 0.85) !important;
 }
 
-/* ALL SECONDARY, OUTLINE, CANCEL & SMALL BUTTONS in Shiny Theme (Glossy Metallic Chrome) */
+/* ALL SECONDARY, OUTLINE, CANCEL & SMALL BUTTONS in Royal Amethyst Theme (Liquid Platinum Glass) */
 [data-theme="shiny"] .bg-slate-800,
 [data-theme="shiny"] .bg-slate-700,
 [data-theme="shiny"] [class*="bg-slate-800"],
@@ -531,10 +532,10 @@ body[data-theme="shiny"],
 [data-theme="shiny"] button.border,
 [data-theme="shiny"] button.border-slate-700,
 [data-theme="shiny"] button.border-slate-800 {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.07) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+  border: 1px solid rgba(216, 180, 254, 0.35) !important;
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 2px 8px rgba(0, 0, 0, 0.45) !important;
-  color: #F1F5F9 !important;
+  color: #F3E8FF !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
 }
 
@@ -542,46 +543,46 @@ body[data-theme="shiny"],
 [data-theme="shiny"] .hover\:bg-slate-600:hover,
 [data-theme="shiny"] [class*="hover:bg-slate-700"]:hover,
 [data-theme="shiny"] button.border:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.14) 100%) !important;
-  border-color: rgba(56, 189, 248, 0.6) !important;
-  color: #38bdf8 !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 0 12px rgba(56, 189, 248, 0.35) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.12) 100%) !important;
+  border-color: rgba(192, 132, 252, 0.8) !important;
+  color: #E9D5FF !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 0 14px rgba(192, 132, 252, 0.45) !important;
 }
 
-/* Small Control & Icon Buttons in Shiny Theme */
+/* Small Control & Icon Buttons in Royal Amethyst Theme */
 [data-theme="shiny"] #notifications-button,
 [data-theme="shiny"] #toggle-sidebar-button,
 [data-theme="shiny"] button#user-profile-menu-button {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  border: 1px solid rgba(216, 180, 254, 0.3) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
-  color: #CBD5E1 !important;
+  color: #E9D5FF !important;
 }
 
 [data-theme="shiny"] #notifications-button:hover,
 [data-theme="shiny"] #toggle-sidebar-button:hover {
-  color: #38bdf8 !important;
-  border-color: rgba(56, 189, 248, 0.7) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 10px rgba(56, 189, 248, 0.4) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(192, 132, 252, 0.8) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 12px rgba(192, 132, 252, 0.5) !important;
 }
 
-/* Navigation Tabs in Shiny Theme */
+/* Navigation Tabs in Royal Amethyst Theme */
 [data-theme="shiny"] nav button {
-  color: #CBD5E1 !important;
+  color: #D8B4FE !important;
 }
 
 [data-theme="shiny"] nav button:hover {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.05) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  color: #38bdf8 !important;
+  border: 1px solid rgba(192, 132, 252, 0.35) !important;
+  color: #FFFFFF !important;
 }
 
 [data-theme="shiny"] nav button.bg-blue-600,
 [data-theme="shiny"] nav button.bg-purple-600,
 [data-theme="shiny"] nav button[aria-current="page"] {
-  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0369a1 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.55) !important;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 4px 16px rgba(14, 165, 233, 0.5) !important;
+  background: linear-gradient(180deg, #c084fc 0%, #9333ea 50%, #7e22ce 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.85), 0 4px 18px rgba(168, 85, 247, 0.55), 0 0 15px rgba(192, 132, 252, 0.45) !important;
   color: #FFFFFF !important;
 }
 
@@ -590,25 +591,25 @@ body[data-theme="shiny"],
   color: #FFFFFF !important;
 }
 
-/* ALL TOGGLE SWITCHES in Shiny Theme */
+/* ALL TOGGLE SWITCHES in Royal Amethyst Theme */
 [data-theme="shiny"] button[role="switch"] {
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  border: 1px solid rgba(192, 132, 252, 0.35) !important;
 }
 
 [data-theme="shiny"] button[role="switch"][aria-checked="true"],
 [data-theme="shiny"] button[role="switch"].bg-blue-600 {
-  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%) !important;
+  background: linear-gradient(180deg, #c084fc 0%, #9333ea 100%) !important;
   border-color: rgba(255, 255, 255, 0.6) !important;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.75), 0 0 14px rgba(56, 189, 248, 0.6) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.75), 0 0 14px rgba(192, 132, 252, 0.6) !important;
 }
 
 [data-theme="shiny"] button[role="switch"][aria-checked="false"],
 [data-theme="shiny"] button[role="switch"].bg-slate-700 {
-  background: linear-gradient(180deg, #334155 0%, #1e293b 100%) !important;
+  background: linear-gradient(180deg, #381a5c 0%, #1e0c33 100%) !important;
 }
 
 [data-theme="shiny"] button[role="switch"] span {
-  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #cbd5e1 100%) !important;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #e9d5ff 100%) !important;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 1px 0 #ffffff !important;
 }
 
@@ -617,35 +618,35 @@ body[data-theme="shiny"],
 [data-theme="shiny"] .text-blue-500,
 [data-theme="shiny"] .text-cyan-400,
 [data-theme="shiny"] .text-purple-400 {
-  color: #38bdf8 !important;
-  text-shadow: 0 0 12px rgba(56, 189, 248, 0.6) !important;
+  color: #c084fc !important;
+  text-shadow: 0 0 12px rgba(192, 132, 252, 0.6) !important;
 }
 
 [data-theme="shiny"] .bg-blue-500\/10,
 [data-theme="shiny"] .bg-purple-500\/10,
 [data-theme="shiny"] .bg-blue-500\/20,
 [data-theme="shiny"] .bg-purple-500\/20 {
-  background: linear-gradient(180deg, rgba(56, 189, 248, 0.22) 0%, rgba(2, 132, 199, 0.22) 100%) !important;
-  border: 1px solid rgba(56, 189, 248, 0.55) !important;
+  background: linear-gradient(180deg, rgba(192, 132, 252, 0.22) 0%, rgba(147, 51, 234, 0.22) 100%) !important;
+  border: 1px solid rgba(192, 132, 252, 0.55) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
-  color: #38bdf8 !important;
+  color: #e9d5ff !important;
 }
 
 [data-theme="shiny"] .glow-primary {
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 0 25px rgba(192, 132, 252, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Table Headers & Rows in Shiny Theme */
+/* Table Headers & Rows in Royal Amethyst Theme */
 [data-theme="shiny"] thead {
-  background: linear-gradient(180deg, rgba(24, 34, 52, 0.95) 0%, rgba(13, 19, 30, 0.95) 100%) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: linear-gradient(180deg, rgba(35, 16, 66, 0.95) 0%, rgba(18, 8, 36, 0.95) 100%) !important;
+  border-bottom: 1px solid rgba(192, 132, 252, 0.25) !important;
 }
 
 [data-theme="shiny"] tr {
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(192, 132, 252, 0.15) !important;
 }
 
 [data-theme="shiny"] tbody tr:hover {
-  background: rgba(56, 189, 248, 0.08) !important;
+  background: rgba(192, 132, 252, 0.1) !important;
 }
 

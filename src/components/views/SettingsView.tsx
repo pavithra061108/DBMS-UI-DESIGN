@@ -203,7 +203,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     const themeLabels: Record<ThemePreference, string> = {
       dark: 'Dark Cobalt (Black & Blue)',
       soft: 'Soft Warm Elegance (Peach & Beige)',
-      shiny: 'Shiny Platinum Glass',
+      shiny: 'Royal Amethyst Glass (Deep Violet & Crystal Platinum)',
     };
     onShowToast(
       'Theme Activated',
@@ -1154,9 +1154,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() => handleThemeSelect('soft')}
                 />
                 <ThemeOption
-                  title="Shiny Platinum Glass"
-                  description="High-gloss metallic chrome and specular glass cards with diamond cyan buttons."
-                  icon={<Sparkles className="h-5 w-5 text-cyan-300" />}
+                  title="Royal Amethyst Glass"
+                  description="High-gloss crystalline amethyst cards with specular glass finish and radiant violet buttons."
+                  icon={<Sparkles className="h-5 w-5 text-purple-300" />}
                   selected={preferences.theme === 'shiny'}
                   themeType="shiny"
                   onClick={() => handleThemeSelect('shiny')}
@@ -1297,12 +1297,12 @@ const ThemeOption: React.FC<{
       accentDot: 'bg-[#E07A5F]',
     },
     shiny: {
-      bg: 'bg-[#070b12]',
-      card: 'bg-[#172233]',
-      border: 'border-cyan-500/30',
-      activeBorder: 'border-cyan-400 ring-2 ring-cyan-400/50 bg-cyan-500/15 shadow-lg shadow-cyan-400/30',
-      badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
-      accentDot: 'bg-cyan-400',
+      bg: 'bg-[#0a0316]',
+      card: 'bg-[#1f0d3d]',
+      border: 'border-purple-500/30',
+      activeBorder: 'border-purple-400 ring-2 ring-purple-400/50 bg-purple-500/15 shadow-lg shadow-purple-400/30',
+      badge: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      accentDot: 'bg-purple-400',
     },
   }[themeType];
 

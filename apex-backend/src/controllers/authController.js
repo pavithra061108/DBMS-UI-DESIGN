@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 // Register a new Customer or Bank Admin
 exports.registerCustomer = async (req, res) => {
-    const { name, email, phone, password, address, city, dob, role } = req.body;
+    const { name, email, phone, password, address, city, dob, role, branchId } = req.body;
 
     try {
         // 1. Check if user already exists
@@ -21,10 +21,19 @@ exports.registerCustomer = async (req, res) => {
         // Determine target role (Admin vs Customer)
         const targetRole = (role && role.toLowerCase() === 'admin') ? 'Admin' : 'Customer';
 
-        // 3. Start a PostgreSQL transaction
+        // 3. Resolve target branch ID
+        let targetBranchId = branchId ? parseInt(branchId, 10) : null;
+        if (!targetBranchId) {
+            const defBranch = await pool.query('SELECT BranchID FROM Branch WHERE IsActive = true ORDER BY BranchID ASC LIMIT 1');
+            if (defBranch.rows.length > 0) {
+                targetBranchId = defBranch.rows[0].branchid;
+            }
+        }
+
+        // 4. Start a PostgreSQL transaction
         await pool.query('BEGIN');
 
-        // 4. Insert into the main "User" table
+        // 5. Insert into the main "User" table
         const userResult = await pool.query(
             `INSERT INTO "User" (Name, Email, Phone, Password, Role) 
              VALUES ($1, $2, $3, $4, $5) RETURNING UserID`,
@@ -33,20 +42,42 @@ exports.registerCustomer = async (req, res) => {
         
         const newUserId = userResult.rows[0].userid;
 
-        // 5. Insert into specialized Customer table
+        // 6. Insert into specialized Customer table with assigned branch
         await pool.query(
-            `INSERT INTO Customer (UserID, Address, City, DateOfBirth) 
-             VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING`,
-            [newUserId, address || (targetRole === 'Admin' ? 'Bank Headquarters' : 'Default Address'), city || 'Mumbai', dob || '1990-01-01']
+            `INSERT INTO Customer (UserID, Address, City, DateOfBirth, BranchID) 
+             VALUES ($1, $2, $3, $4, $5) 
+             ON CONFLICT (UserID) DO UPDATE SET BranchID = $5`,
+            [newUserId, address || (targetRole === 'Admin' ? 'Bank Headquarters' : 'Default Address'), city || 'Mumbai', dob || '1990-01-01', targetBranchId]
         );
 
-        // 6. Commit transaction if everything succeeded
+        // 7. If role is Admin, also register in Employee table for branch affiliation
+        if (targetRole === 'Admin' && targetBranchId) {
+            await pool.query(
+                `INSERT INTO Employee (UserID, BranchID, Designation, Salary)
+                 VALUES ($1, $2, 'Administrator', 85000)
+                 ON CONFLICT (UserID) DO UPDATE SET BranchID = $2`,
+                [newUserId, targetBranchId]
+            );
+        }
+
+        // 8. If role is Customer, auto-create default Savings Account in the chosen branch
+        if (targetRole === 'Customer' && targetBranchId) {
+            const accNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+            await pool.query(
+                `INSERT INTO Account (AccountNumber, CustomerID, BranchID, AccountType, Balance, Status) 
+                 VALUES ($1, $2, $3, 'Savings', 1000, 'Active') ON CONFLICT DO NOTHING`,
+                [accNumber, newUserId, targetBranchId]
+            );
+        }
+
+        // 9. Commit transaction if everything succeeded
         await pool.query('COMMIT');
 
         res.status(201).json({ 
             message: `${targetRole === 'Admin' ? 'Bank Admin' : 'Customer'} account created successfully!`, 
             userId: newUserId,
-            role: targetRole
+            role: targetRole,
+            branchId: targetBranchId
         });
 
     } catch (error) {

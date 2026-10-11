@@ -82,7 +82,7 @@ export const ManagerDashboardView: React.FC<ManagerViewsProps> = ({
         <div className="bg-slate-900/80 px-5 py-3 rounded-2xl border border-slate-700/80 text-right">
           <p className="text-[10px] uppercase font-bold text-slate-400">Total Vault Reserve Liquidity</p>
           <p className="text-2xl font-black text-purple-400 font-mono-num">
-            ${(totalLiquidity / 1000000).toFixed(1)}M USD
+            ₹{(totalLiquidity / 10000000).toFixed(2)} Cr INR
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@ export const ManagerDashboardView: React.FC<ManagerViewsProps> = ({
         </div>
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 shadow-md">
           <p className="text-xs text-slate-400 font-semibold">Monthly Branch Revenue</p>
-          <p className="text-2xl font-black text-white font-mono mt-1">$15.85M</p>
+          <p className="text-2xl font-black text-white font-mono mt-1">₹15.85 Cr</p>
         </div>
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700 shadow-md">
           <p className="text-xs text-slate-400 font-semibold">Active Customers</p>
@@ -124,8 +124,8 @@ export const ManagerDashboardView: React.FC<ManagerViewsProps> = ({
               <XAxis dataKey="branchName" stroke="#94A3B8" fontSize={11} />
               <YAxis stroke="#94A3B8" fontSize={11} />
               <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderColor: '#334155', color: '#fff' }} />
-              <Bar dataKey="vaultLiquidity" name="Vault Liquidity ($)" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="totalDeposits" name="Total Deposits ($)" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="vaultLiquidity" name="Vault Liquidity (₹)" fill="#8B5CF6" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="totalDeposits" name="Total Deposits (₹)" fill="#3B82F6" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -166,11 +166,11 @@ export const BranchLiquidityView: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700">
           <p className="text-xs text-slate-400 font-semibold">Total Inflow Today</p>
-          <p className="text-2xl font-black text-emerald-400 font-mono mt-1">+$7,020,000 USD</p>
+          <p className="text-2xl font-black text-emerald-400 font-mono mt-1">+₹7,02,00,000 INR</p>
         </div>
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700">
           <p className="text-xs text-slate-400 font-semibold">Total Outflow Today</p>
-          <p className="text-2xl font-black text-rose-400 font-mono mt-1">-$5,010,000 USD</p>
+          <p className="text-2xl font-black text-rose-400 font-mono mt-1">-₹5,01,00,000 INR</p>
         </div>
         <div className="bg-[#1E293B] p-5 rounded-2xl border border-slate-700">
           <p className="text-xs text-slate-400 font-semibold">Central Bank Reserve Ratio</p>
@@ -181,7 +181,7 @@ export const BranchLiquidityView: React.FC = () => {
       {/* Liquidity Forecast Chart */}
       <div className="bg-[#1E293B] p-6 rounded-3xl border border-slate-700 shadow-xl space-y-4">
         <h2 className="text-base font-bold text-white flex items-center justify-between border-b border-slate-700 pb-3">
-          <span>Weekly Cash Flow & Reserve Ratio Trend ($ Millions)</span>
+          <span>Weekly Cash Flow & Reserve Ratio Trend (₹ Crores)</span>
           <span className="text-xs text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
             Optimal Liquidity
           </span>
@@ -508,7 +508,7 @@ export const BranchMetricsView: React.FC = () => {
                   <p className="text-xs text-slate-400">Main Regional Hub</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-emerald-400">${(b.vaultLiquidity / 1000000).toFixed(1)}M USD</p>
+                  <p className="text-xs font-bold text-emerald-400">₹{(b.vaultLiquidity / 10000000).toFixed(2)} Cr INR</p>
                   <p className="text-[10px] text-slate-400">Ratio: {b.reserveRatio}%</p>
                 </div>
               </div>
@@ -542,8 +542,8 @@ export const ManagerReportsView: React.FC<{
     },
     {
       id: 3,
-      title: 'High Volume Transactions & SWIFT Transfers Aggregate',
-      sql: `SELECT type, COUNT(id) as volume, SUM(amount) as total_usd, AVG(fee) as avg_fee \nFROM transactions \nWHERE status = 'Completed' \nGROUP BY type;`,
+      title: 'High Volume Transactions & NEFT/RTGS Transfers Aggregate',
+      sql: `SELECT type, COUNT(id) as volume, SUM(amount) as total_inr, AVG(fee) as avg_fee \nFROM transactions \nWHERE status = 'Completed' \nGROUP BY type;`,
     },
   ];
 

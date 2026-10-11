@@ -135,7 +135,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             <div className="bg-[#151515] border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden glass-card-accent">
               <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/30">
                     AB
                   </div>
                   <div>
@@ -151,7 +151,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <div className="my-6">
                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Vault Capitalization</p>
                 <p className="text-3xl font-extrabold text-white mt-1 font-mono-num">
-                  $14,850,290,000 <span className="text-xs text-slate-400 font-normal">USD</span>
+                  ₹1,24,500 Crores <span className="text-xs text-slate-400 font-normal">INR</span>
                 </p>
               </div>
 
@@ -183,11 +183,11 @@ export const LandingView: React.FC<LandingViewProps> = ({
           </div>
           <div className="space-y-1">
             <p className="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-mono-num">450+</p>
-            <p className="text-xs uppercase tracking-wider font-bold text-slate-400">Global Branches</p>
+            <p className="text-xs uppercase tracking-wider font-bold text-slate-400">Regional Branches</p>
           </div>
           <div className="space-y-1">
-            <p className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono-num">$14.8 Billion</p>
-            <p className="text-xs uppercase tracking-wider font-bold text-slate-400">Daily Transactions</p>
+            <p className="text-3xl sm:text-4xl font-extrabold text-emerald-400 font-mono-num">₹14,800+ Crores</p>
+            <p className="text-xs uppercase tracking-wider font-bold text-slate-400">Daily Cleared Volume</p>
           </div>
           <div className="space-y-1">
             <p className="text-3xl sm:text-4xl font-extrabold text-amber-400 font-mono-num">ISO 27001</p>
@@ -350,7 +350,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <div className="space-y-2">
             <p className="text-xs font-bold text-white uppercase tracking-wider">Security & HQ</p>
             <p className="flex items-center gap-2 text-slate-400">
-              <Building2 className="w-4 h-4 text-blue-500" /> Wall Street Financial Center, NY
+              <Building2 className="w-4 h-4 text-blue-500" /> Bandra-Kurla Complex (BKC), Mumbai, India
             </p>
             <p className="flex items-center gap-2 text-slate-400">
               <ShieldCheck className="w-4 h-4 text-emerald-400" /> ACID Compliant Database

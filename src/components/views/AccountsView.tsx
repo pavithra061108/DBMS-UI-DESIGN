@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Landmark,
   CheckCircle2,
@@ -52,9 +52,26 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAccountType, setNewAccountType] = useState('Savings');
+  const [branches, setBranches] = useState<{ id: number; name: string; code: string; location: string }[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | number>('');
   const [isCreating, setIsCreating] = useState(false);
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
   const [adminProcessingId, setAdminProcessingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await API.get('/branches');
+        if (res.data && res.data.length > 0) {
+          setBranches(res.data);
+          setSelectedBranchId(res.data[0].id);
+        }
+      } catch (err) {
+        console.warn('Could not fetch branches in accounts view:', err);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   const handleAdminProcessDeactivation = async (acc: BankAccount, approve: boolean) => {
     try {
@@ -137,6 +154,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       const res = await API.post('/accounts/create', {
         accountType: newAccountType,
         initialBalance: 1000,
+        branchId: selectedBranchId,
       });
       setIsModalOpen(false);
       if (res.data && res.data.account && setGlobalAccountId) {
@@ -549,6 +567,27 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 >
                   Checking Account
                 </button>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Designated Bank Branch
+                </label>
+                <select
+                  value={selectedBranchId}
+                  onChange={(e) => setSelectedBranchId(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-blue-500"
+                >
+                  {branches.length === 0 ? (
+                    <option value="4">Apex Main Branch - Mumbai (APEX0000001)</option>
+                  ) : (
+                    branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code}) — {b.location}
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
 
               <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-700/70 text-xs">

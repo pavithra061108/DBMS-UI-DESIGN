@@ -44,13 +44,19 @@ exports.getAllUsers = async (req, res) => {
 
 // Create a new user manually
 exports.createUser = async (req, res) => {
-  const { name, email, phone, role, password, address, city } = req.body;
+  const { name, email, phone, role, password, address, city, branchId } = req.body;
   try {
     const saltRounds = 10;
     const pwd = password || 'password123';
     const hashedPassword = await bcrypt.hash(pwd, saltRounds);
 
     const userRole = (role && role.toLowerCase() === 'admin') ? 'Admin' : 'Customer';
+
+    let targetBranchId = branchId ? parseInt(branchId, 10) : null;
+    if (!targetBranchId) {
+      const defBranch = await pool.query('SELECT BranchID FROM Branch WHERE IsActive = true ORDER BY BranchID ASC LIMIT 1');
+      if (defBranch.rows.length > 0) targetBranchId = defBranch.rows[0].branchid;
+    }
 
     await pool.query('BEGIN');
     const newUser = await pool.query(
@@ -62,13 +68,32 @@ exports.createUser = async (req, res) => {
     const newUserId = newUser.rows[0].userid;
 
     await pool.query(
-      `INSERT INTO Customer (UserID, Address, City, DateOfBirth, KYCStatus) 
-       VALUES ($1, $2, $3, CURRENT_DATE, 'Verified') ON CONFLICT DO NOTHING`,
-      [newUserId, address || (userRole === 'Admin' ? 'Bank Headquarters' : 'Default Address'), city || 'Mumbai']
+      `INSERT INTO Customer (UserID, Address, City, DateOfBirth, KYCStatus, BranchID) 
+       VALUES ($1, $2, $3, CURRENT_DATE, 'Verified', $4) 
+       ON CONFLICT (UserID) DO UPDATE SET BranchID = $4`,
+      [newUserId, address || (userRole === 'Admin' ? 'Bank Headquarters' : 'Default Address'), city || 'Mumbai', targetBranchId]
     );
 
+    if (userRole === 'Admin' && targetBranchId) {
+      await pool.query(
+        `INSERT INTO Employee (UserID, BranchID, Designation, Salary)
+         VALUES ($1, $2, 'Administrator', 85000)
+         ON CONFLICT (UserID) DO UPDATE SET BranchID = $2`,
+        [newUserId, targetBranchId]
+      );
+    }
+
+    if (userRole === 'Customer' && targetBranchId) {
+      const accNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+      await pool.query(
+        `INSERT INTO Account (AccountNumber, CustomerID, BranchID, AccountType, Balance, Status) 
+         VALUES ($1, $2, $3, 'Savings', 1000, 'Active') ON CONFLICT DO NOTHING`,
+        [accNumber, newUserId, targetBranchId]
+      );
+    }
+
     await pool.query('COMMIT');
-    res.status(201).json({ message: 'User created successfully', user: newUser.rows[0] });
+    res.status(201).json({ message: 'User created successfully', user: newUser.rows[0], branchId: targetBranchId });
   } catch (err) {
     await pool.query('ROLLBACK');
     console.error('Error creating user:', err.message);
