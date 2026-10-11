@@ -5,7 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: '/', // <-- Change this to a single slash
+    base: '/src', // <-- Change this to a single slash
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
